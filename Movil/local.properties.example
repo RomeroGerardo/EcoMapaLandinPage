@@ -1,0 +1,6 @@
+# EcoMapa — Credenciales de Supabase
+# Copia este archivo como local.properties y completa los valores.
+# NUNCA commitear local.properties al repositorio.
+
+SUPABASE_URL=https://uuagrhbdgyvopezoakia.supabase.co
+SUPABASE_ANON_KEY=tu_anon_key_aqui

@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">EcoMapa</string>
+    <string name="chat_hint">Escribe tu residuo aquí…</string>
+    <string name="send_button">Enviar</string>
+    <string name="my_location">Mi ubicación</string>
+    <string name="badges_title">Mis Insignias</string>
+    <string name="ecopoints_label">Ecopuntos</string>
+    <string name="loading">Clasificando…</string>
+    <string name="error_classify">No se pudo clasificar el residuo</string>
+    <string name="error_location">No se pudo obtener la ubicación</string>
+    <string name="badge_unlocked">¡Insignia desbloqueada!</string>
+    <string name="badge_locked">Bloqueada</string>
+    <string name="great_button">¡Genial!</string>
+    <string name="location_permission_rationale">EcoMapa necesita tu ubicación para encontrar contenedores cercanos</string>
+    <string name="welcome_message">¡Hola! Soy EcoAsistente 🌱 Dime qué residuo quieres reciclar y te ayudaré a encontrar el contenedor correcto.</string>
+</resources>
