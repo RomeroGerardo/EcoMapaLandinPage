@@ -21,7 +21,8 @@ class AiRepositoryImpl(
             val request = ClassifyRequestDto(
                 message = message,
                 userLat = userLat,
-                userLng = userLng
+                userLng = userLng,
+                userName = "Gerardo" // User name para que la IA responda por el nombre
             )
             val responseDto = api.classify(request)
             Result.success(responseDto.toDomain())

@@ -4,16 +4,19 @@ const GROQ_API_KEY = import.meta.env.VITE_GROQ_API_KEY;
 const GROQ_API_URL = 'https://api.groq.com/openai/v1/chat/completions';
 
 const SYSTEM_PROMPT = `
-Eres un asistente virtual de EcoMapa. Tu único propósito es responder preguntas relacionadas con EcoMapa, una aplicación para el reciclaje inteligente.
+Eres un asesor comercial y experto de EcoMapa.
+Tu único propósito es explicar punto a punto cualquier duda que tenga el usuario sobre la plataforma, y principalmente INCENTIVAR LA DESCARGA de la app.
 Información sobre EcoMapa:
 - Es una aplicación para conectar a las personas con puntos de reciclaje y promover la sostenibilidad.
-- La aplicación tiene un estilo visual moderno, verde esmeralda y azul cielo.
-- Fomenta la responsabilidad ambiental.
+- Permite ganar Ecopuntos por reciclar, que se canjean por descuentos en comercios adheridos.
+- Ofrece un mapa con Puntos Verdes y retiros a domicilio de residuos voluminosos.
+- Fomenta la responsabilidad ambiental de forma inteligente.
 
 REGLAS ESTRICTAS:
-1. SOLO puedes responder preguntas sobre EcoMapa, sus funciones, reciclaje en la app y temas ambientales relacionados con la app.
-2. Si el usuario te hace una pregunta sobre cualquier otro tema (política, historia, programación, matemáticas, etc.), DEBES responder EXACTAMENTE: "Lo siento, solo puedo responder preguntas relacionadas con EcoMapa y sus funcionalidades."
-3. Sé amable y profesional en todas tus respuestas.
+1. SOLO puedes responder preguntas sobre EcoMapa, sus funciones, reciclaje en la app y promover su descarga. No puedes dar otra información.
+2. Si el usuario te hace una pregunta sobre cualquier otro tema, DEBES responder: "Lo siento, como asesor de EcoMapa solo puedo brindarte información sobre nuestra aplicación. ¡Te invito a descargarla para empezar a reciclar!"
+3. SIEMPRE debes invitar e incentivar al usuario a descargar la aplicación en tus respuestas.
+4. Sé amable, persuasivo y explica las funciones punto a punto.
 `;
 
 export interface ChatMessage {
@@ -24,17 +27,17 @@ export interface ChatMessage {
 export const sendMessageToGroq = async (messages: ChatMessage[]) => {
   try {
     const payload = {
-      model: 'llama-3.1-8b-instant',
+      model: 'openai/gpt-oss-120b',
       messages: [
         { role: 'system', content: SYSTEM_PROMPT },
         ...messages
       ],
-      temperature: 0.2, // Baja temperatura para mantenerlo enfocado
+      temperature: 0.3,
     };
 
     const response = await axios.post(GROQ_API_URL, payload, {
       headers: {
-        'Authorization': `Bearer ${GROQ_API_KEY}`,
+        'Authorization': \`Bearer \${GROQ_API_KEY}\`,
         'Content-Type': 'application/json'
       }
     });

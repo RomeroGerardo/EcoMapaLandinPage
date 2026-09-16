@@ -16,5 +16,7 @@ data class ClassifyRequestDto(
     @SerializedName("user_lat")
     val userLat: Double,
     @SerializedName("user_lng")
-    val userLng: Double
+    val userLng: Double,
+    @SerializedName("user_name")
+    val userName: String? = null
 )
