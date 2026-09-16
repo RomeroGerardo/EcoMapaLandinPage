@@ -1,0 +1,97 @@
+erDiagram
+    TENANTS ||--o{ RECYCLING_POINTS : "administra"
+    TENANTS ||--o{ PICKUP_REQUESTS : "gestiona"
+    TENANTS ||--o{ REWARDS : "publica"
+    PRODUCERS ||--o{ RECYCLING_POINTS : "certifica"
+    REWARDS ||--o{ REWARD_CLAIMS : "genera"
+
+    TENANTS {
+        UUID id PK
+        TEXT name
+        TEXT type
+        TEXT subscription_tier
+        TEXT subscription_status
+        TIMESTAMPTZ subscription_end_date
+        TIMESTAMPTZ created_at
+    }
+
+    PRODUCERS {
+        UUID id PK
+        TEXT name
+        TEXT category
+        TEXT logo_url
+        TEXT website
+        TEXT contact_email
+        TEXT description
+        TIMESTAMPTZ created_at
+    }
+
+    RECYCLING_POINTS {
+        UUID id PK
+        TEXT name
+        TEXT description
+        TEXT type
+        TEXT color
+        DOUBLE_PRECISION latitude
+        DOUBLE_PRECISION longitude
+        GEOMETRY geom
+        TEXT address
+        BOOLEAN is_active
+        BOOLEAN is_approved
+        BOOLEAN is_private_facility
+        TEXT price_per_kg_detail
+        UUID tenant_id FK
+        UUID producer_id FK
+        TEXT producer_name
+        TIMESTAMPTZ created_at
+    }
+
+    PICKUP_REQUESTS {
+        UUID id PK
+        TEXT user_name
+        TEXT user_phone
+        TEXT waste_type
+        TEXT estimated_volume
+        TEXT notes
+        TEXT address
+        DOUBLE_PRECISION latitude
+        DOUBLE_PRECISION longitude
+        TEXT preferred_date
+        TEXT preferred_time_slot
+        TEXT status
+        TEXT assigned_collector
+        UUID tenant_id FK
+        TIMESTAMPTZ created_at
+    }
+
+    REWARDS {
+        UUID id PK
+        TEXT title
+        TEXT partner_name
+        TEXT category
+        TEXT description
+        INT ecopoints_cost
+        INT discount_percentage
+        INT stock
+        BOOLEAN is_active
+        UUID tenant_id FK
+        TIMESTAMPTZ created_at
+    }
+
+    REWARD_CLAIMS {
+        UUID id PK
+        UUID reward_id FK
+        TEXT user_id
+        TEXT coupon_code
+        INT points_spent
+        TEXT status
+        TIMESTAMPTZ claimed_at
+    }
+
+    AI_QUERIES_LOG {
+        UUID id PK
+        TEXT waste_category
+        INT response_time_ms
+        INT ecopoints_awarded
+        TIMESTAMPTZ created_at
+    }

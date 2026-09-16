@@ -1,0 +1,30 @@
+sequenceDiagram
+    autonumber
+    actor V as Vecino
+    participant App as PickupScreen Compose
+    participant VM as PickupViewModel
+    participant PR as PickupRepositoryImpl
+    participant API as SupabaseApi Retrofit
+    participant DB as PostgreSQL Supabase
+    actor M as Municipio Operador
+    participant Web as Panel Web Pickups
+
+    V->>App: Completa formulario de retiro voluminoso
+    App->>VM: submitRequest()
+    VM->>PR: requestPickup(PickupRequest)
+    PR->>API: POST /rest/v1/pickup_requests
+    API->>DB: INSERT pickup_requests (status="pendiente")
+    DB-->>API: 201 Created (PickupRequestDto)
+    API-->>PR: PickupRequestDto
+    PR-->>VM: Result.success(PickupRequest)
+    VM-->>App: isSuccess = true
+    App-->>V: "¡Solicitud enviada! En breve te contactaremos"
+
+    Note over M,DB: Gestion B2G desde Panel Web
+    M->>Web: Ingresa a Gestion de Retiros
+    Web->>DB: SELECT * FROM pickup_requests WHERE status='pendiente'
+    DB-->>Web: Lista de solicitudes pendientes
+    M->>Web: Asigna cuadrilla ("Cooperativa Recicla+")
+    Web->>DB: UPDATE status="asignado", collector="Cooperativa Recicla+"
+    DB-->>Web: 200 OK
+    Web-->>M: Solicitud asignada con exito

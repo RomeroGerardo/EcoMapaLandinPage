@@ -1,0 +1,52 @@
+flowchart TB
+    classDef clientStyle fill:#e0f2fe,stroke:#0284c7,stroke-width:2px,color:#0369a1,font-weight:bold;
+    classDef backendStyle fill:#ecfdf5,stroke:#059669,stroke-width:2px,color:#065f46,font-weight:bold;
+    classDef dbStyle fill:#fef3c7,stroke:#d97706,stroke-width:2px,color:#92400e,font-weight:bold;
+    classDef aiStyle fill:#fce7f3,stroke:#db2777,stroke-width:2px,color:#9d174d,font-weight:bold;
+    classDef localStyle fill:#f3e8ff,stroke:#9333ea,stroke-width:2px,color:#6b21a8,font-weight:bold;
+
+    subgraph CLIENTES [" 🖥️ CAPA DE PRESENTACION (CLIENTES) "]
+        direction LR
+        APP["📱 App Movil Nativa<br/>- Kotlin + Jetpack Compose<br/>- Clean Architecture MVVM<br/>- OSMDroid OpenStreetMap<br/>- Retrofit + OkHttp"]:::clientStyle
+        WEB["🌐 Panel Web Backoffice<br/>- React 19 + TypeScript<br/>- Vite + Tailwind CSS<br/>- Leaflet + React-Leaflet<br/>- Zustand State Manager"]:::clientStyle
+        LAND["🏠 Landing Page B2G/B2B<br/>- Material Design 3<br/>- Descarga APK + Modal QR<br/>- Chatbot Comercial IA"]:::clientStyle
+    end
+
+    subgraph BACKEND [" ☁️ CAPA DE BACKEND (SUPABASE CLOUD) "]
+        AUTH["🔐 Supabase Auth<br/>JWT + RLS (Row Level Security)<br/>3 Roles: Ciudadano, Municipio, Superadmin"]:::backendStyle
+        REST["📡 REST API PostgREST<br/>Endpoints auto-generados<br/>Filtros, ordenamiento y relaciones"]:::backendStyle
+        EDGE["⚡ Supabase Edge Functions (Deno)<br/>/classify v4<br/>Orquestador Semantico + Fallback"]:::backendStyle
+        STORAGE["📦 Supabase Storage<br/>Buckets para APK, logos y fotos"]:::backendStyle
+    end
+
+    subgraph DATABASE [" 🗄️ CAPA DE BASE DE DATOS (POSTGRESQL 15) "]
+        POSTGIS["🌍 Extension PostGIS<br/>ST_DistanceSphere, ST_DWithin<br/>Busqueda geoespacial indexada"]:::dbStyle
+        TABLES["📊 Tablas Principales<br/>tenants, producers, recycling_points<br/>pickup_requests, rewards<br/>reward_claims, ai_queries_log"]:::dbStyle
+        RPC["⚙️ Procedimientos Almacenados (PL/pgSQL)<br/>get_nearby_points()<br/>set_geom_from_coords()"]:::dbStyle
+    end
+
+    subgraph AI [" 🤖 CAPA DE INTELIGENCIA ARTIFICIAL "]
+        GROQ_APP["Groq Cloud API (App Movil)<br/>LLaMA 3.3-70b Versatile<br/>Clasificacion de residuos y contenedores"]:::aiStyle
+        GROQ_WEB["Groq Cloud API (Landing Page)<br/>GPT-OSS-120b Commercial<br/>Asesor B2G/B2B y anti-jailbreak"]:::aiStyle
+    end
+
+    subgraph LOCAL [" 📲 ALMACENAMIENTO LOCAL "]
+        DATASTORE["Android DataStore Preferences<br/>Ecopuntos, racha, insignias y consultas"]:::localStyle
+    end
+
+    %% Conexiones
+    APP -->|Bearer JWT| REST
+    APP -->|POST /classify| EDGE
+    APP --> DATASTORE
+    WEB -->|Supabase JS SDK| REST
+    WEB -->|Auth Session| AUTH
+    LAND -->|Axios HTTP| GROQ_WEB
+
+    EDGE -->|API Request| GROQ_APP
+    EDGE -->|RPC get_nearby_points| RPC
+    EDGE -->|INSERT telemetria| TABLES
+
+    REST --> TABLES
+    AUTH --> REST
+    RPC --> POSTGIS
+    POSTGIS --> TABLES

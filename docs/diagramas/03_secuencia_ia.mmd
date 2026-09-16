@@ -1,0 +1,38 @@
+sequenceDiagram
+    autonumber
+    actor C as Ciudadano
+    participant UI as HomeScreen Compose
+    participant VM as HomeViewModel
+    participant AR as AiRepositoryImpl
+    participant API as SupabaseApi Retrofit
+    participant EF as Edge Function classify
+    participant GQ as Groq Cloud LLaMA
+    participant DB as PostgreSQL PostGIS
+    participant GR as GamificationRepository
+    participant ST as DataStore Local
+
+    C->>UI: Escribe "¿Donde tiro pilas y baterias?"
+    UI->>VM: sendMessage()
+    VM->>VM: Agrega ChatMessage(isUser=true)
+    VM->>AR: classify(query, lat, lng)
+    AR->>API: POST /functions/v1/classify
+    API->>EF: { message, user_lat, user_lng }
+    Note over EF,GQ: Clasificacion Semantica
+    EF->>GQ: Chat Completion (system + user prompt)
+    GQ-->>EF: { waste_type, container, impact }
+    Note over EF,DB: Busqueda Geoespacial PostGIS
+    EF->>DB: RPC get_nearby_points(lat, lng, 25km)
+    DB-->>EF: RecyclingPoint (mas cercano)
+    EF->>DB: INSERT ai_queries_log (telemetria)
+    EF-->>API: AiResponseDto (completo)
+    API-->>AR: AiResponseDto
+    AR-->>VM: Result.success(AiResponse)
+    Note over VM,ST: Gamificacion en Dominio
+    VM->>GR: processReward(aiResponse)
+    GR->>ST: addPoints(+20), incrementQueries(), updateStreak()
+    GR->>GR: evaluateNewBadges()
+    GR-->>VM: GamificationResult(points, newBadges)
+    VM->>VM: Agrega ChatMessage(isUser=false, aiResponse)
+    VM->>VM: Actualiza centerOnPoint en mapa
+    VM-->>UI: Emite HomeUiState actualizado
+    UI-->>C: Muestra respuesta, mapa centrado e insignia

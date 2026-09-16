@@ -1,0 +1,226 @@
+classDiagram
+    direction TB
+
+    namespace Domain_Models {
+        class RecyclingPoint {
+            +String id
+            +String name
+            +String type
+            +String color
+            +Double latitude
+            +Double longitude
+            +String address
+            +Double distanceKm
+            +Boolean isPrivateFacility
+            +String pricePerKgDetail
+            +String producerName
+        }
+
+        class AiResponse {
+            +String wasteType
+            +String containerType
+            +String containerColor
+            +RecyclingPoint suggestedPoint
+            +String environmentalImpact
+            +Int ecopointsEarned
+            +String friendlyMessage
+        }
+
+        class ChatMessage {
+            +String content
+            +Boolean isUser
+            +Instant timestamp
+            +AiResponse aiResponse
+        }
+
+        class Badge {
+            +String id
+            +String name
+            +String icon
+            +String description
+            +Int bonusPoints
+            +Boolean isUnlocked
+            +catalog: List~Badge~$
+        }
+
+        class UserProgress {
+            +Int totalPoints
+            +Int queriesCount
+            +List~String~ unlockedBadgeIds
+            +Instant lastQueryDate
+            +Int streakDays
+        }
+
+        class GamificationResult {
+            +Int pointsEarned
+            +Int totalPoints
+            +List~Badge~ newBadges
+        }
+
+        class PickupRequest {
+            +String id
+            +String userName
+            +String userPhone
+            +String wasteType
+            +String estimatedVolume
+            +String address
+            +Double latitude
+            +Double longitude
+            +String status
+            +String assignedCollector
+        }
+
+        class Reward {
+            +String id
+            +String title
+            +String partnerName
+            +String category
+            +Int ecopointsCost
+            +Int discountPercentage
+            +Int stock
+            +Boolean isActive
+        }
+
+        class RewardClaim {
+            +String id
+            +String rewardId
+            +String couponCode
+            +String status
+            +Int pointsSpent
+            +String claimedAt
+        }
+    }
+
+    namespace Domain_Repositories {
+        class AiRepository {
+            <<interface>>
+            +classify(message, lat, lng) Result~AiResponse~
+        }
+
+        class MapRepository {
+            <<interface>>
+            +getNearbyPoints(lat, lng, radiusKm) List~RecyclingPoint~
+            +getAllActivePoints() List~RecyclingPoint~
+        }
+
+        class GamificationRepository {
+            <<interface>>
+            +getTotalPoints() Int
+            +addPoints(points) Int
+            +processReward(response) GamificationResult
+            +getUserProgress() UserProgress
+            +updateStreak()
+        }
+
+        class PickupRepository {
+            <<interface>>
+            +requestPickup(request) Result~PickupRequest~
+        }
+
+        class RewardRepository {
+            <<interface>>
+            +getRewards() List~Reward~
+            +claimReward(reward, userId) Result~RewardClaim~
+        }
+    }
+
+    namespace Data_Layer {
+        class AiRepositoryImpl {
+            -SupabaseApi api
+            +classify(message, lat, lng) Result~AiResponse~
+        }
+
+        class MapRepositoryImpl {
+            -SupabaseApi api
+            +getNearbyPoints(lat, lng, radiusKm) List~RecyclingPoint~
+        }
+
+        class GamificationRepositoryImpl {
+            -GamificationStore store
+            +processReward(response) GamificationResult
+            +updateStreak()
+        }
+
+        class PickupRepositoryImpl {
+            -SupabaseApi api
+            +requestPickup(request) Result~PickupRequest~
+        }
+
+        class RewardRepositoryImpl {
+            -SupabaseApi api
+            -GamificationStore store
+            +getRewards() List~Reward~
+            +claimReward(reward, userId) Result~RewardClaim~
+        }
+
+        class SupabaseApi {
+            <<interface Retrofit>>
+            +classify(request) AiResponseDto
+            +getNearbyPoints(params) List~RecyclingPointDto~
+            +getActiveRewards() List~RewardDto~
+            +claimReward(claim) List~RewardClaimDto~
+            +createPickupRequest(request) List~PickupRequestDto~
+        }
+
+        class GamificationStore {
+            -DataStore preferences
+            +getInt(key) Int
+            +setInt(key, value)
+            +getString(key) String
+        }
+    }
+
+    namespace Presentation_ViewModels {
+        class HomeViewModel {
+            -AiRepository aiRepo
+            -MapRepository mapRepo
+            -GamificationRepository gamRepo
+            +uiState: StateFlow~HomeUiState~
+            +sendMessage()
+            +updateUserLocation(lat, lng)
+        }
+
+        class BadgesViewModel {
+            -GamificationRepository gamRepo
+            +uiState: StateFlow~BadgesUiState~
+        }
+
+        class PickupViewModel {
+            -PickupRepository pickupRepo
+            +uiState: StateFlow~PickupUiState~
+            +submitRequest()
+        }
+
+        class RewardsViewModel {
+            -RewardRepository rewardRepo
+            -GamificationStore store
+            +uiState: StateFlow~RewardsUiState~
+            +claimReward(reward)
+        }
+    }
+
+    %% Relaciones
+    AiResponse o-- RecyclingPoint : suggests
+    ChatMessage o-- AiResponse : contains
+    GamificationResult *-- Badge : includes
+    RewardClaim ..> Reward : references
+
+    AiRepositoryImpl ..|> AiRepository
+    MapRepositoryImpl ..|> MapRepository
+    GamificationRepositoryImpl ..|> GamificationRepository
+    PickupRepositoryImpl ..|> PickupRepository
+    RewardRepositoryImpl ..|> RewardRepository
+
+    AiRepositoryImpl --> SupabaseApi
+    MapRepositoryImpl --> SupabaseApi
+    PickupRepositoryImpl --> SupabaseApi
+    RewardRepositoryImpl --> SupabaseApi
+    GamificationRepositoryImpl --> GamificationStore
+    RewardRepositoryImpl --> GamificationStore
+
+    HomeViewModel --> AiRepository
+    HomeViewModel --> MapRepository
+    HomeViewModel --> GamificationRepository
+    BadgesViewModel --> GamificationRepository
+    PickupViewModel --> PickupRepository
+    RewardsViewModel --> RewardRepository
