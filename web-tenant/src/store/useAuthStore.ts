@@ -39,9 +39,9 @@ interface AuthState {
 }
 
 export const MOCK_USER: User = {
-  id: '00000000-0000-0000-0000-000000000000',
-  app_metadata: { provider: 'email', providers: ['email'], role: 'superadmin' },
-  user_metadata: { role: 'superadmin', name: 'Superadmin EcoMapa' },
+  id: '11111111-1111-1111-1111-111111111111',
+  app_metadata: { provider: 'email', providers: ['email'], role: 'admin' },
+  user_metadata: { role: 'admin', name: 'Lic. Constanza Maffei (Sec. Ambiente)' },
   aud: 'authenticated',
   confirmation_sent_at: '',
   recovery_sent_at: '',
@@ -49,8 +49,8 @@ export const MOCK_USER: User = {
   new_email: '',
   invited_at: '',
   action_link: '',
-  email: 'admin@ecomapa.org',
-  phone: '',
+  email: 'ambiente@cordoba.gov.ar',
+  phone: '+54 351 433-2600',
   created_at: new Date().toISOString(),
   confirmed_at: new Date().toISOString(),
   email_confirmed_at: new Date().toISOString(),
@@ -64,7 +64,7 @@ export const MOCK_USER: User = {
 
 const DEFAULT_TENANT: Tenant = {
   id: '11111111-1111-1111-1111-111111111111',
-  name: 'Municipalidad Demo',
+  name: 'Municipalidad de Córdoba Capital',
   type: 'municipality',
 };
 
@@ -75,40 +75,40 @@ export const useAuthStore = create<AuthState>()(
       session: null,
       isLoading: false,
       activeTenant: DEFAULT_TENANT,
-      isSuperAdmin: true,
+      isSuperAdmin: false,
 
-      setUser: (user) => set({ user: user ?? MOCK_USER, isSuperAdmin: true }),
+      setUser: (user) => set({ user: user ?? MOCK_USER, isSuperAdmin: false }),
       setSession: (session) =>
         set({
           session,
           user: session?.user ?? MOCK_USER,
-          isSuperAdmin: true,
+          isSuperAdmin: false,
         }),
       setActiveTenant: (tenant) => set({ activeTenant: tenant ?? DEFAULT_TENANT }),
       clearActiveTenant: () => set({ activeTenant: null }),
 
       initializeAuth: () => {
-        // En modo bypass directo, mantenemos el usuario activo
+        // En modo bypass directo, mantenemos el operador municipal activo
         try {
           supabase.auth.getSession().then(({ data: { session } }) => {
             if (session?.user) {
               set({
                 session,
                 user: session.user,
-                isSuperAdmin: checkIsSuperAdmin(session.user),
+                isSuperAdmin: false,
                 isLoading: false,
               });
             } else {
               set({
                 user: MOCK_USER,
-                isSuperAdmin: true,
+                isSuperAdmin: false,
                 isLoading: false,
               });
             }
           }).catch(() => {
             set({
               user: MOCK_USER,
-              isSuperAdmin: true,
+              isSuperAdmin: false,
               isLoading: false,
             });
           });
@@ -120,7 +120,7 @@ export const useAuthStore = create<AuthState>()(
               set({
                 session,
                 user: session.user,
-                isSuperAdmin: checkIsSuperAdmin(session.user),
+                isSuperAdmin: false,
                 isLoading: false,
               });
             }
@@ -132,7 +132,7 @@ export const useAuthStore = create<AuthState>()(
         } catch {
           set({
             user: MOCK_USER,
-            isSuperAdmin: true,
+            isSuperAdmin: false,
             isLoading: false,
           });
           return () => {};

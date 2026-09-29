@@ -2,11 +2,9 @@ import { NavLink } from 'react-router-dom';
 import { 
   Home, 
   Map as MapIcon, 
-  Building2, 
   Settings, 
   Activity, 
   Leaf, 
-  ShieldAlert, 
   Layers, 
   Truck, 
   Gift, 
@@ -53,7 +51,6 @@ const SidebarItem = ({ to, icon, label, badge }: SidebarItemProps) => (
 
 export function Sidebar() {
   const activeTenant = useAuthStore((state) => state.activeTenant);
-  const isSuperAdmin = useAuthStore((state) => state.isSuperAdmin);
 
   return (
     <div className="flex h-full flex-col gap-3 border-r bg-card px-3 py-5 w-64 shadow-sm z-10">
@@ -96,17 +93,6 @@ export function Sidebar() {
             <SidebarItem to="/dashboard/plan" icon={<Crown className="h-4 w-4 text-amber-500" />} label="Mi Plan & Suscripción" />
           </div>
 
-          {/* Sección Exclusiva Superadmin (Romero Labs) */}
-          {isSuperAdmin && (
-            <div className="space-y-1 pt-1 border-t mt-1">
-              <h2 className="mb-1.5 px-3 text-[10px] font-bold tracking-wider text-purple-600 dark:text-purple-400 uppercase flex items-center gap-1">
-                <Crown className="h-3 w-3" /> Control SaaS (Master)
-              </h2>
-              <SidebarItem to="/superadmin/tenants" icon={<Building2 className="h-4 w-4 text-purple-500" />} label="Entidades & Planes" />
-              <SidebarItem to="/dashboard/approvals" icon={<ShieldAlert className="h-4 w-4 text-amber-500" />} label="Aprobaciones Globales" />
-            </div>
-          )}
-
           {/* Configuración */}
           <div className="space-y-1 pt-1 border-t mt-1">
             {activeTenant && (
@@ -121,26 +107,22 @@ export function Sidebar() {
         </nav>
       </div>
 
-      {/* Tenant Indicator or System Badge */}
+      {/* Jurisdicción Activa Badge */}
       <div className="mt-auto border-t pt-3">
-        {isSuperAdmin ? (
-          <div className="rounded-lg bg-purple-500/10 border border-purple-500/20 p-2.5">
-            <p className="text-xs font-bold text-purple-700 dark:text-purple-400 flex items-center gap-1">
-              <Crown className="h-3 w-3" /> Superadministrador
-            </p>
-            <p className="text-[11px] text-muted-foreground">Romero Labs Master Access</p>
+        <div className="rounded-xl bg-emerald-500/10 border border-emerald-500/20 p-2.5 space-y-0.5">
+          <div className="flex items-center justify-between">
+            <span className="text-[10px] font-bold text-emerald-600 dark:text-emerald-400 uppercase tracking-wider">
+              Jurisdicción Activa
+            </span>
+            <span className="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse" />
           </div>
-        ) : activeTenant ? (
-          <div className="rounded-lg bg-green-500/10 border border-green-500/20 p-2.5">
-            <p className="text-xs font-semibold text-green-700 dark:text-green-400">Tenant Activo</p>
-            <p className="text-[11px] text-muted-foreground truncate">{activeTenant.name}</p>
-          </div>
-        ) : (
-          <div className="rounded-lg bg-primary/5 border border-primary/10 p-2.5">
-            <p className="text-xs font-semibold text-primary">EcoMapa Enterprise</p>
-            <p className="text-[11px] text-muted-foreground">Panel Administrativo</p>
-          </div>
-        )}
+          <p className="text-xs font-bold text-foreground truncate">
+            {activeTenant?.name || "Municipalidad de Córdoba Capital"}
+          </p>
+          <p className="text-[10px] text-muted-foreground">
+            Plan Ciudad Circular Pro · B2G
+          </p>
+        </div>
       </div>
     </div>
   );
