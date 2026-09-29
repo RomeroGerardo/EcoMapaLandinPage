@@ -25,11 +25,17 @@ export const SuperAdminSidebar: React.FC<SidebarProps> = ({ pendingApprovalsCoun
     },
     {
       to: "/tenants",
-      label: "Gestión Multi-Tenant",
+      label: "Jurisdicciones & Red",
       icon: Building2,
       badge: pendingApprovalsCount > 0 ? `${pendingApprovalsCount} pendientes` : undefined,
       badgeColor: "bg-amber-500/20 text-amber-400 border-amber-500/30",
-      description: "Municipios, empresas y cuotas",
+      description: "Municipios, empresas y contratos",
+    },
+    {
+      to: "/plans",
+      label: "Planes SaaS & Negocio",
+      icon: Crown,
+      description: "Precios B2G, cuotas y MRR",
     },
     {
       to: "/monitoring",
@@ -41,7 +47,7 @@ export const SuperAdminSidebar: React.FC<SidebarProps> = ({ pendingApprovalsCoun
       to: "/users",
       label: "Usuarios y Roles",
       icon: Users2,
-      description: "Admins de tenants y auditores",
+      description: "Admins de entidades y auditores",
     },
   ];
 

@@ -71,20 +71,21 @@ export function Sidebar() {
       <div className="flex-1 overflow-y-auto py-1">
         <nav className="grid items-start gap-3">
           
-          {/* Monitoreo Operativo */}
+          {/* Monitoreo Territorial */}
           <div className="space-y-1">
             <h2 className="mb-1.5 px-3 text-[10px] font-bold tracking-wider text-muted-foreground uppercase">
               Monitoreo Territorial
             </h2>
             <SidebarItem to="/dashboard" icon={<Home className="h-4 w-4" />} label="Overview" />
             <SidebarItem to="/dashboard/map" icon={<MapIcon className="h-4 w-4" />} label="Puntos de Reciclaje" />
-            <SidebarItem to="/dashboard/routes" icon={<Route className="h-4 w-4 text-emerald-500" />} label="Rutas de Recolección" />
+            <SidebarItem to="/dashboard/routes" icon={<Route className="h-4 w-4 text-emerald-500" />} label="Rutas & Logística" />
+            <SidebarItem to="/dashboard/impact" icon={<Leaf className="h-4 w-4 text-teal-500" />} label="Impacto B & Carbono" />
             <SidebarItem to="/dashboard/insights" icon={<Brain className="h-4 w-4 text-purple-500" />} label="Insights de Vecinos" />
             <SidebarItem to="/dashboard/analytics" icon={<Activity className="h-4 w-4 text-blue-500" />} label="Telemetría IA" />
             <SidebarItem to="/dashboard/report" icon={<FileText className="h-4 w-4 text-teal-500" />} label="Auditoría Ambiental" />
           </div>
           
-          {/* Operaciones B2G */}
+          {/* Operaciones & B2G */}
           <div className="space-y-1 pt-1">
             <h2 className="mb-1.5 px-3 text-[10px] font-bold tracking-wider text-muted-foreground uppercase">
               Operaciones & B2G
@@ -92,6 +93,7 @@ export function Sidebar() {
             <SidebarItem to="/dashboard/pickups" icon={<Truck className="h-4 w-4 text-blue-500" />} label="Retiros a Domicilio" />
             <SidebarItem to="/dashboard/rep" icon={<Factory className="h-4 w-4 text-purple-500" />} label="Productores REP" />
             <SidebarItem to="/dashboard/rewards" icon={<Gift className="h-4 w-4 text-emerald-500" />} label="Recompensas & Cupones" />
+            <SidebarItem to="/dashboard/plan" icon={<Crown className="h-4 w-4 text-amber-500" />} label="Mi Plan & Suscripción" />
           </div>
 
           {/* Sección Exclusiva Superadmin (Romero Labs) */}

@@ -88,6 +88,93 @@ export const TenantsManagement: React.FC = () => {
   // Modal Límites & Permisos
   const [selectedTenantForLimits, setSelectedTenantForLimits] = useState<TenantRecord | null>(null);
 
+  const defaultTenantsList: TenantRecord[] = [
+    {
+      id: "11111111-1111-1111-1111-111111111111",
+      name: "Municipalidad de Córdoba Capital",
+      type: "municipality",
+      subscription_tier: "triple_impact",
+      subscription_status: "active",
+      contact_email: "ambiente@cordoba.gov.ar",
+      jurisdiction: "Córdoba Capital (Centro, Nva Cba, Alberdi)",
+      max_containers: 500,
+      ai_monthly_limit: 50000,
+      ai_enabled: true,
+      pickups_enabled: true,
+      created_at: new Date().toISOString(),
+    },
+    {
+      id: "b3f796e6-89ac-470c-bb01-5c5df4d5b749",
+      name: "Municipalidad de Villa Carlos Paz",
+      type: "municipality",
+      subscription_tier: "pro_ciudad",
+      subscription_status: "active",
+      contact_email: "modernizacion@vcp.gov.ar",
+      jurisdiction: "Valle de Punilla & Cuenca San Roque",
+      max_containers: 120,
+      ai_monthly_limit: 10000,
+      ai_enabled: true,
+      pickups_enabled: true,
+      created_at: new Date().toISOString(),
+    },
+    {
+      id: "44444444-4444-4444-4444-444444444444",
+      name: "Municipalidad de Alta Gracia",
+      type: "municipality",
+      subscription_tier: "pro_ciudad",
+      subscription_status: "active",
+      contact_email: "ambiente@altagracia.gov.ar",
+      jurisdiction: "Circuito Histórico y Tajamar",
+      max_containers: 100,
+      ai_monthly_limit: 8000,
+      ai_enabled: true,
+      pickups_enabled: true,
+      created_at: new Date().toISOString(),
+    },
+    {
+      id: "22222222-2222-2222-2222-222222222222",
+      name: "Holcim Argentina (Planta Yocsina - B2B)",
+      type: "business",
+      subscription_tier: "triple_impact",
+      subscription_status: "active",
+      contact_email: "sustentabilidad@holcim.com",
+      jurisdiction: "Malagueño & Autovía Justiniano Posse",
+      max_containers: 60,
+      ai_monthly_limit: 15000,
+      ai_enabled: true,
+      pickups_enabled: false,
+      created_at: new Date().toISOString(),
+    },
+    {
+      id: "33333333-3333-3333-3333-333333333333",
+      name: "Cooperativa Los Cuadraditos Recicla",
+      type: "cooperative",
+      subscription_tier: "starter_b2g",
+      subscription_status: "active",
+      contact_email: "cooperativa@loscuadraditos.org",
+      jurisdiction: "Red Barrial de Recuperadores Urbanos",
+      max_containers: 40,
+      ai_monthly_limit: 5000,
+      ai_enabled: true,
+      pickups_enabled: true,
+      created_at: new Date().toISOString(),
+    },
+    {
+      id: "c45521ed-fc2c-4bb7-abe1-2fb381823173",
+      name: "Municipalidad de Matorrales (Piloto)",
+      type: "municipality",
+      subscription_tier: "starter_b2g",
+      subscription_status: "active",
+      contact_email: "municipio@matorrales.gob.ar",
+      jurisdiction: "Departamento Río Segundo",
+      max_containers: 30,
+      ai_monthly_limit: 1500,
+      ai_enabled: true,
+      pickups_enabled: true,
+      created_at: new Date().toISOString(),
+    },
+  ];
+
   const fetchTenants = async () => {
     setIsLoading(true);
     try {
@@ -96,12 +183,12 @@ export const TenantsManagement: React.FC = () => {
         .select("*")
         .order("created_at", { ascending: false });
 
-      if (!error && data) {
+      if (!error && data && data.length > 0) {
         const enriched: TenantRecord[] = data.map((t: any) => ({
           id: t.id,
           name: t.name,
           type: t.type || "municipality",
-          subscription_tier: t.subscription_tier || "pro",
+          subscription_tier: t.subscription_tier || "pro_ciudad",
           subscription_status: t.subscription_status || "active",
           contact_email: t.contact_email || "contacto@jurisdiccion.gov.ar",
           jurisdiction: t.jurisdiction || "Provincia de Córdoba",
@@ -112,9 +199,12 @@ export const TenantsManagement: React.FC = () => {
           created_at: t.created_at || new Date().toISOString(),
         }));
         setTenants(enriched);
+      } else {
+        setTenants(defaultTenantsList);
       }
     } catch (e) {
-      console.error("Error fetching tenants:", e);
+      console.warn("Using fallback jurisdictions list:", e);
+      setTenants(defaultTenantsList);
     } finally {
       setIsLoading(false);
     }
@@ -207,11 +297,11 @@ export const TenantsManagement: React.FC = () => {
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
           <h1 className="text-2xl font-extrabold text-white tracking-tight flex items-center gap-2">
-            <Building2 className="h-6 w-6 text-purple-400" />
-            Módulo de Gestión Multi-Tenant
+            <Building2 className="h-6 w-6 text-emerald-400" />
+            Jurisdicciones & Red Territorial
           </h1>
           <p className="text-sm text-slate-400">
-            Control de altas, jurisdicciones, contratos B2G/B2B y configuración de límites por entidad.
+            Control de municipios, empresas B2B y cooperativas aliadas a la plataforma EcoMapa.
           </p>
         </div>
 
@@ -220,7 +310,7 @@ export const TenantsManagement: React.FC = () => {
           className="px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-slate-950 font-bold text-sm flex items-center gap-2 shadow-lg shadow-emerald-950/40 transition-all self-start sm:self-auto"
         >
           <Plus className="h-4 w-4 text-slate-950 stroke-[3]" />
-          Dar de Alta Tenant
+          Nueva Jurisdicción
         </button>
       </div>
 
@@ -235,7 +325,7 @@ export const TenantsManagement: React.FC = () => {
           }`}
         >
           <Building2 className="h-4 w-4" />
-          Directorio & ABM de Tenants ({tenants.length})
+          Directorio de Jurisdicciones ({tenants.length})
         </button>
 
         <button
@@ -247,7 +337,7 @@ export const TenantsManagement: React.FC = () => {
           }`}
         >
           <Inbox className="h-4 w-4" />
-          Solicitudes de Alta
+          Solicitudes de Adhesión
           {pendingRequests.length > 0 && (
             <span className="px-1.5 py-0.5 rounded-md text-[10px] font-bold bg-amber-500/20 text-amber-400 border border-amber-500/30">
               {pendingRequests.length}

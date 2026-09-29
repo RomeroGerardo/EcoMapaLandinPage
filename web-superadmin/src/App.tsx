@@ -3,6 +3,7 @@ import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { SuperAdminLayout } from "./layout/SuperAdminLayout";
 import { DashboardConsolidated } from "./pages/DashboardConsolidated";
 import { TenantsManagement } from "./pages/TenantsManagement";
+import { SaasPlansManagement } from "./pages/SaasPlansManagement";
 import { InfrastructureMonitoring } from "./pages/InfrastructureMonitoring";
 import { GlobalUsers } from "./pages/GlobalUsers";
 
@@ -32,6 +33,7 @@ export function App() {
           <Route path="/" element={<Navigate to="/dashboard" replace />} />
           <Route path="/dashboard" element={<DashboardConsolidated />} />
           <Route path="/tenants" element={<TenantsManagement />} />
+          <Route path="/plans" element={<SaasPlansManagement />} />
           <Route path="/monitoring" element={<InfrastructureMonitoring />} />
           <Route path="/users" element={<GlobalUsers />} />
           <Route path="*" element={<Navigate to="/dashboard" replace />} />

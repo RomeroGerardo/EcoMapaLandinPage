@@ -24,6 +24,8 @@ import { RepProducers } from "./pages/Dashboard/RepProducers";
 import { LogisticsRoutes } from "./pages/Dashboard/LogisticsRoutes";
 import { CitizenInsights } from "./pages/Dashboard/CitizenInsights";
 import { SustainabilityReport } from "./pages/Dashboard/SustainabilityReport";
+import { TripleImpactCarbon } from "./pages/Dashboard/TripleImpactCarbon";
+import { SubscriptionPlan } from "./pages/Dashboard/SubscriptionPlan";
 
 // Superadmin Exclusive Pages (Romero Labs Master)
 import { Approvals } from "./pages/superadmin/Approvals";
@@ -70,6 +72,8 @@ function App() {
             <Route index element={<Overview />} />
             <Route path="map" element={<MapManager />} />
             <Route path="routes" element={<LogisticsRoutes />} />
+            <Route path="impact" element={<TripleImpactCarbon />} />
+            <Route path="plan" element={<SubscriptionPlan />} />
             <Route path="insights" element={<CitizenInsights />} />
             <Route path="analytics" element={<Analytics />} />
             <Route path="report" element={<SustainabilityReport />} />
