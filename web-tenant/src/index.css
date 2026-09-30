@@ -73,6 +73,15 @@
     @apply border-border;
   }
   body {
-    @apply bg-background text-foreground;
+    @apply bg-background text-foreground transition-colors duration-200;
   }
+}
+
+/* OpenStreetMap filter: Dark mode when .dark is active, natural OSM in light mode */
+.dark .osm-dark-tiles .leaflet-tile {
+  filter: invert(100%) hue-rotate(180deg) brightness(85%) contrast(95%);
+}
+
+.osm-dark-tiles .leaflet-tile {
+  transition: filter 0.3s ease;
 }

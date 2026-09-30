@@ -1,6 +1,7 @@
 import { Bell, Search, User, Settings, LogOut } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useAuthStore } from '@/store/useAuthStore';
+import { ThemeToggle } from '@/components/ui/ThemeToggle';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -32,6 +33,9 @@ export function Header() {
             />
           </div>
         </form>
+
+        {/* Toggle Modo Claro / Oscuro */}
+        <ThemeToggle />
 
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
