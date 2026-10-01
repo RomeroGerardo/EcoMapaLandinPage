@@ -21,6 +21,10 @@ class RewardRepositoryImpl(
         }
     }
 
+    override suspend fun getClaimedCoupons(): List<RewardClaim> {
+        return store.getClaimedCoupons()
+    }
+
     override suspend fun claimReward(reward: Reward, userId: String): Result<RewardClaim> {
         return try {
             val currentPoints = store.getInt(GamificationStore.ECO_TOTAL_POINTS)
@@ -55,6 +59,9 @@ class RewardRepositoryImpl(
                 pointsSpent = reward.ecopointsCost,
                 claimedAt = "Hoy"
             )
+
+            // Guardar localmente para acceso permanente
+            store.saveClaimedCoupon(claim)
 
             Result.success(claim)
         } catch (e: Exception) {

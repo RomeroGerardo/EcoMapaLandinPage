@@ -5,9 +5,12 @@ import androidx.compose.animation.slideInVertically
 import androidx.compose.animation.slideOutVertically
 import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -16,9 +19,12 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import com.romerolabs.ecomapa.ui.theme.PrimaryGreen
+import com.romerolabs.ecomapa.ui.theme.EmeraldPrimary
+import com.romerolabs.ecomapa.ui.theme.EmeraldPrimaryDark
 
 @Composable
 fun EcoPointsCounter(
@@ -26,19 +32,28 @@ fun EcoPointsCounter(
     onClick: () -> Unit = {},
     modifier: Modifier = Modifier
 ) {
+    val gradient = Brush.horizontalGradient(
+        colors = listOf(
+            EmeraldPrimaryDark,
+            EmeraldPrimary
+        )
+    )
+
     Row(
         modifier = modifier
-            .shadow(4.dp, RoundedCornerShape(20.dp))
-            .clip(RoundedCornerShape(20.dp))
-            .background(PrimaryGreen)
+            .shadow(6.dp, RoundedCornerShape(24.dp), spotColor = EmeraldPrimary.copy(alpha = 0.4f))
+            .clip(RoundedCornerShape(24.dp))
+            .background(gradient)
+            .border(1.dp, Color.White.copy(alpha = 0.25f), RoundedCornerShape(24.dp))
             .clickable(onClick = onClick)
-            .padding(horizontal = 16.dp, vertical = 8.dp),
+            .padding(horizontal = 14.dp, vertical = 7.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
         Text(
-            text = "\uD83C\uDF3F ",
+            text = "🌿",
             style = MaterialTheme.typography.titleMedium
         )
+        Spacer(modifier = Modifier.width(4.dp))
         AnimatedContent(
             targetState = points,
             transitionSpec = {
@@ -49,13 +64,15 @@ fun EcoPointsCounter(
             Text(
                 text = "$targetPoints",
                 style = MaterialTheme.typography.titleMedium,
+                fontWeight = FontWeight.Bold,
                 color = Color.White
             )
         }
         Text(
             text = " pts",
-            style = MaterialTheme.typography.bodyMedium,
-            color = Color.White.copy(alpha = 0.8f)
+            style = MaterialTheme.typography.labelSmall,
+            fontWeight = FontWeight.Medium,
+            color = Color.White.copy(alpha = 0.9f)
         )
     }
 }

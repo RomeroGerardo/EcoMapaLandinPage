@@ -26,12 +26,16 @@ object NetworkModule {
      */
     private val authInterceptor = Interceptor { chain ->
         val original = chain.request()
-        val request = original.newBuilder()
+        val requestBuilder = original.newBuilder()
             .header("apikey", BuildConfig.SUPABASE_ANON_KEY)
             .header("Authorization", "Bearer ${BuildConfig.SUPABASE_ANON_KEY}")
             .header("Content-Type", "application/json")
-            .build()
-        chain.proceed(request)
+
+        if (original.header("Prefer") == null && original.method == "POST" && original.url.encodedPath.contains("rest/v1/")) {
+            requestBuilder.header("Prefer", "return=representation")
+        }
+
+        chain.proceed(requestBuilder.build())
     }
 
     /** Logging interceptor para debug (solo en builds de debug). */

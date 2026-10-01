@@ -53,24 +53,38 @@ export const SuperAdminSidebar: React.FC<SidebarProps> = ({ pendingApprovalsCoun
 
   return (
     <aside className="w-72 bg-white dark:bg-slate-950 border-r border-slate-200 dark:border-slate-800/80 flex flex-col shrink-0 select-none transition-colors duration-200">
-      {/* Brand Header */}
-      <div className="p-5 border-b border-slate-200 dark:border-slate-800/80 flex items-center justify-between">
-        <div className="flex items-center gap-3">
-          <div className="h-10 w-10 rounded-xl bg-gradient-to-tr from-emerald-600 via-teal-600 to-emerald-400 flex items-center justify-center shadow-lg shadow-emerald-950/50 border border-emerald-400/20">
-            <MapPin className="h-5 w-5 text-white" />
+      {/* Brand Header: CivicLoop Technologies en Grande con Logo de Empresa */}
+      <div className="p-5 border-b border-slate-200 dark:border-slate-800/80 flex flex-col gap-3">
+        <div className="flex items-center gap-3.5">
+          <div className="h-14 w-14 rounded-2xl bg-white dark:bg-slate-900 flex items-center justify-center shadow-lg shadow-indigo-950/20 border-2 border-indigo-500/30 p-1 shrink-0 overflow-hidden group">
+            <img
+              src="/civicloop_logo.jpg"
+              alt="CivicLoop Technologies"
+              className="h-full w-full object-cover rounded-xl transition-transform duration-300 group-hover:scale-105"
+            />
           </div>
-          <div>
-            <div className="flex items-center gap-1.5">
-              <span className="font-extrabold text-base tracking-tight text-slate-900 dark:text-white">EcoMapa</span>
-              <span className="px-1.5 py-0.5 text-[10px] font-bold rounded-md bg-purple-500/20 border border-purple-500/40 text-purple-700 dark:text-purple-300">
-                MASTER
-              </span>
-            </div>
-            <p className="text-xs text-slate-500 dark:text-slate-400 font-medium flex items-center gap-1">
-              <Crown className="h-3 w-3 text-amber-500" />
-              Romero Labs GovTech
+          <div className="min-w-0 flex-1">
+            <span className="inline-block px-1.5 py-0.5 text-[9px] font-extrabold uppercase tracking-wider rounded bg-indigo-500/10 dark:bg-indigo-500/20 border border-indigo-500/30 text-indigo-600 dark:text-indigo-400 mb-0.5">
+              Matriz Corporativa
+            </span>
+            <h1 className="font-extrabold text-lg leading-tight tracking-tight text-slate-900 dark:text-white truncate">
+              CivicLoop
+            </h1>
+            <p className="text-[11px] font-semibold text-indigo-600 dark:text-indigo-400 -mt-0.5">
+              Technologies S.A.
             </p>
           </div>
+        </div>
+
+        {/* Subtítulo EcoMapa */}
+        <div className="flex items-center justify-between px-2.5 py-1.5 rounded-xl bg-slate-100 dark:bg-slate-900/90 border border-slate-200/80 dark:border-slate-800">
+          <div className="flex items-center gap-1.5">
+            <span className="text-xs font-bold text-slate-600 dark:text-slate-300">EcoMapa</span>
+            <span className="text-[10px] text-slate-400 dark:text-slate-500">· Suite Global</span>
+          </div>
+          <span className="px-1.5 py-0.5 text-[9px] font-mono font-bold rounded bg-purple-500/20 border border-purple-500/40 text-purple-700 dark:text-purple-300">
+            SUPERADMIN
+          </span>
         </div>
       </div>
 

@@ -4,56 +4,83 @@ import android.Manifest
 import android.annotation.SuppressLint
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.horizontalScroll
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.imePadding
-import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.AutoAwesome
 import androidx.compose.material.icons.filled.CardGiftcard
 import androidx.compose.material.icons.filled.EmojiEvents
 import androidx.compose.material.icons.filled.LocalShipping
+import androidx.compose.material.icons.filled.Map
 import androidx.compose.material.icons.filled.MyLocation
-import androidx.compose.material3.BottomSheetScaffold
+import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.FilterChip
+import androidx.compose.material3.FilterChipDefaults
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.SheetValue
+import androidx.compose.material3.NavigationBar
+import androidx.compose.material3.NavigationBarItem
+import androidx.compose.material3.NavigationBarItemDefaults
+import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Snackbar
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
-import androidx.compose.material3.rememberBottomSheetScaffoldState
-import androidx.compose.material3.rememberStandardBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.google.android.gms.location.CurrentLocationRequest
 import com.google.android.gms.location.LocationServices
 import com.google.android.gms.location.Priority
-import com.romerolabs.ecomapa.ui.components.chat.ChatPanel
 import com.romerolabs.ecomapa.ui.components.gamification.BadgeUnlockDialog
 import com.romerolabs.ecomapa.ui.components.gamification.EcoPointsCounter
 import com.romerolabs.ecomapa.ui.components.map.EcoMapView
-import com.romerolabs.ecomapa.ui.theme.PrimaryGreen
+import com.romerolabs.ecomapa.ui.theme.EmeraldLight
+import com.romerolabs.ecomapa.ui.theme.EmeraldPrimary
+import com.romerolabs.ecomapa.ui.theme.EmeraldPrimaryDark
+import com.romerolabs.ecomapa.ui.theme.EmeraldPrimaryDeep
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun HomeScreen(
+    onNavigateToChat: () -> Unit,
     onNavigateToBadges: () -> Unit,
     onNavigateToRewards: () -> Unit,
     onNavigateToPickup: () -> Unit,
@@ -62,6 +89,8 @@ fun HomeScreen(
     val uiState by viewModel.uiState.collectAsState()
     val context = LocalContext.current
     val snackbarHostState = remember { SnackbarHostState() }
+    val scope = rememberCoroutineScope()
+    var selectedCategory by remember { mutableStateOf("todos") }
 
     LaunchedEffect(uiState.errorMessage) {
         uiState.errorMessage?.let { message ->
@@ -96,44 +125,52 @@ fun HomeScreen(
         )
     }
 
-    val scaffoldState = rememberBottomSheetScaffoldState(
-        bottomSheetState = rememberStandardBottomSheetState(
-            initialValue = SheetValue.PartiallyExpanded
-        )
-    )
+    // Filtrar puntos en el mapa según la categoría seleccionada
+    val filteredPoints = remember(uiState.recyclingPoints, selectedCategory) {
+        if (selectedCategory == "todos") {
+            uiState.recyclingPoints
+        } else {
+            uiState.recyclingPoints.filter {
+                it.type.contains(selectedCategory, ignoreCase = true) ||
+                it.color.contains(selectedCategory, ignoreCase = true)
+            }
+        }
+    }
 
-    BottomSheetScaffold(
-        scaffoldState = scaffoldState,
+    Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("EcoMapa 🌿") },
+                title = {
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Text(
+                            text = "EcoMapa",
+                            style = MaterialTheme.typography.titleLarge,
+                            fontWeight = FontWeight.ExtraBold,
+                            color = MaterialTheme.colorScheme.onSurface
+                        )
+                        Spacer(modifier = Modifier.width(4.dp))
+                        Text(
+                            text = "🌿",
+                            fontSize = 20.sp
+                        )
+                    }
+                },
                 colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = PrimaryGreen,
-                    titleContentColor = Color.White
+                    containerColor = MaterialTheme.colorScheme.surface,
+                    titleContentColor = MaterialTheme.colorScheme.onSurface
                 ),
                 actions = {
-                    // Botón Retiro a Domicilio (Fase 2)
-                    IconButton(onClick = onNavigateToPickup) {
-                        Icon(
-                            imageVector = Icons.Filled.LocalShipping,
-                            contentDescription = "Retiro a Domicilio",
-                            tint = Color.White
-                        )
-                    }
-                    // Botón Canje de Recompensas (Fase 2)
-                    IconButton(onClick = onNavigateToRewards) {
-                        Icon(
-                            imageVector = Icons.Filled.CardGiftcard,
-                            contentDescription = "Recompensas",
-                            tint = Color.White
-                        )
-                    }
-                    // Botón Insignias
+                    EcoPointsCounter(
+                        points = uiState.totalPoints,
+                        onClick = onNavigateToRewards,
+                        modifier = Modifier.padding(end = 4.dp)
+                    )
+
                     IconButton(onClick = onNavigateToBadges) {
                         Icon(
                             imageVector = Icons.Filled.EmojiEvents,
-                            contentDescription = "Insignias",
-                            tint = Color.White
+                            contentDescription = "Mis Insignias",
+                            tint = EmeraldPrimaryDark
                         )
                     }
                 }
@@ -148,53 +185,181 @@ fun HomeScreen(
                 )
             }
         },
-        sheetContent = {
-            ChatPanel(
-                messages = uiState.chatMessages,
-                inputValue = uiState.chatInput,
-                onInputChange = { viewModel.updateChatInput(it) },
-                onSend = { viewModel.sendMessage() },
-                isLoading = uiState.isLoading,
-                modifier = Modifier
-                    .height(400.dp)
-                    .navigationBarsPadding()
-                    .imePadding()
-            )
-        },
-        sheetPeekHeight = 120.dp
+        bottomBar = {
+            NavigationBar(
+                containerColor = MaterialTheme.colorScheme.surface,
+                tonalElevation = 8.dp
+            ) {
+                NavigationBarItem(
+                    selected = true,
+                    onClick = { /* Ya estamos en mapa */ },
+                    icon = { Icon(Icons.Filled.Map, contentDescription = "Mapa") },
+                    label = { Text("Mapa", fontWeight = FontWeight.Bold) },
+                    colors = NavigationBarItemDefaults.colors(
+                        selectedIconColor = EmeraldPrimaryDark,
+                        selectedTextColor = EmeraldPrimaryDark,
+                        indicatorColor = EmeraldPrimary.copy(alpha = 0.15f)
+                    )
+                )
+
+                NavigationBarItem(
+                    selected = false,
+                    onClick = onNavigateToChat,
+                    icon = { Icon(Icons.Filled.AutoAwesome, contentDescription = "EcoIA") },
+                    label = { Text("EcoIA") },
+                    colors = NavigationBarItemDefaults.colors(
+                        selectedIconColor = EmeraldPrimaryDark,
+                        selectedTextColor = EmeraldPrimaryDark
+                    )
+                )
+
+                NavigationBarItem(
+                    selected = false,
+                    onClick = onNavigateToPickup,
+                    icon = { Icon(Icons.Filled.LocalShipping, contentDescription = "Retiros") },
+                    label = { Text("Retiros") },
+                    colors = NavigationBarItemDefaults.colors(
+                        selectedIconColor = EmeraldPrimaryDark,
+                        selectedTextColor = EmeraldPrimaryDark
+                    )
+                )
+
+                NavigationBarItem(
+                    selected = false,
+                    onClick = onNavigateToRewards,
+                    icon = { Icon(Icons.Filled.CardGiftcard, contentDescription = "Premios") },
+                    label = { Text("Premios") },
+                    colors = NavigationBarItemDefaults.colors(
+                        selectedIconColor = EmeraldPrimaryDark,
+                        selectedTextColor = EmeraldPrimaryDark
+                    )
+                )
+            }
+        }
     ) { paddingValues ->
         Box(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(paddingValues)
         ) {
+            // Mapa interactivo OSM a pantalla completa
             EcoMapView(
-                recyclingPoints = uiState.recyclingPoints,
+                recyclingPoints = filteredPoints,
                 userLocation = uiState.userLocation,
                 centerOnPoint = uiState.centerOnPoint,
                 modifier = Modifier.fillMaxSize()
             )
 
-            EcoPointsCounter(
-                points = uiState.totalPoints,
-                onClick = onNavigateToRewards,
+            // Filtros de categoría flotantes sobre la parte superior del mapa
+            Row(
                 modifier = Modifier
-                    .align(Alignment.TopEnd)
-                    .padding(12.dp)
-            )
+                    .fillMaxWidth()
+                    .padding(top = 10.dp, start = 12.dp, end = 12.dp)
+                    .horizontalScroll(rememberScrollState()),
+                horizontalArrangement = Arrangement.spacedBy(6.dp)
+            ) {
+                val filterChips = listOf(
+                    "todos" to "🌱 Todos",
+                    "amarillo" to "🟡 Plásticos",
+                    "azul" to "🔵 Vidrio",
+                    "rojo" to "🔴 Pilas / RAEE",
+                    "verde" to "🟢 Orgánicos"
+                )
 
+                filterChips.forEach { (catId, label) ->
+                    val isSelected = selectedCategory == catId
+                    FilterChip(
+                        selected = isSelected,
+                        onClick = { selectedCategory = catId },
+                        label = {
+                            Text(
+                                text = label,
+                                fontSize = 12.sp,
+                                fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Medium
+                            )
+                        },
+                        colors = FilterChipDefaults.filterChipColors(
+                            selectedContainerColor = EmeraldPrimary.copy(alpha = 0.9f),
+                            selectedLabelColor = Color.White,
+                            containerColor = MaterialTheme.colorScheme.surface.copy(alpha = 0.92f),
+                            labelColor = MaterialTheme.colorScheme.onSurface
+                        ),
+                        shape = RoundedCornerShape(16.dp),
+                        border = FilterChipDefaults.filterChipBorder(
+                            enabled = true,
+                            selected = isSelected,
+                            borderColor = if (isSelected) EmeraldPrimary else MaterialTheme.colorScheme.outline.copy(alpha = 0.3f)
+                        )
+                    )
+                }
+            }
+
+            // Botón flotante de GPS Centrar
             FloatingActionButton(
                 onClick = { requestLocation(context, viewModel) },
-                containerColor = PrimaryGreen,
+                containerColor = EmeraldPrimaryDark,
+                contentColor = Color.White,
+                shape = CircleShape,
                 modifier = Modifier
                     .align(Alignment.BottomEnd)
-                    .padding(16.dp)
+                    .padding(bottom = 96.dp, end = 16.dp)
+                    .shadow(6.dp, CircleShape)
             ) {
                 Icon(
                     imageVector = Icons.Filled.MyLocation,
                     contentDescription = "Mi ubicación",
                     tint = Color.White
                 )
+            }
+
+            // Píldora de búsqueda flotante "Pregúntale a EcoIA 🤖"
+            Surface(
+                modifier = Modifier
+                    .align(Alignment.BottomCenter)
+                    .padding(horizontal = 16.dp, vertical = 14.dp)
+                    .fillMaxWidth()
+                    .clickable { onNavigateToChat() },
+                shape = RoundedCornerShape(24.dp),
+                color = MaterialTheme.colorScheme.surface,
+                shadowElevation = 8.dp,
+                tonalElevation = 4.dp,
+                border = BorderStroke(1.dp, EmeraldPrimary.copy(alpha = 0.35f))
+            ) {
+                Row(
+                    modifier = Modifier.padding(horizontal = 16.dp, vertical = 12.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Box(
+                        modifier = Modifier
+                            .size(38.dp)
+                            .clip(CircleShape)
+                            .background(EmeraldLight),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Text("🤖", fontSize = 18.sp)
+                    }
+                    Spacer(modifier = Modifier.width(12.dp))
+                    Column(modifier = Modifier.weight(1f)) {
+                        Text(
+                            text = "¿Qué residuo querés reciclar?",
+                            style = MaterialTheme.typography.bodyMedium,
+                            fontWeight = FontWeight.Bold,
+                            color = MaterialTheme.colorScheme.onSurface
+                        )
+                        Text(
+                            text = "Consultar a EcoIA con IA en tiempo real 🌿",
+                            style = MaterialTheme.typography.labelSmall,
+                            fontSize = 11.sp,
+                            color = EmeraldPrimaryDeep
+                        )
+                    }
+                    Icon(
+                        imageVector = Icons.Default.Search,
+                        contentDescription = "Consultar a EcoIA",
+                        tint = EmeraldPrimaryDark,
+                        modifier = Modifier.size(24.dp)
+                    )
+                }
             }
         }
     }

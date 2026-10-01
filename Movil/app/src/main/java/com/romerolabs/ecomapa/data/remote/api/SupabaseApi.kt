@@ -33,10 +33,12 @@ interface SupabaseApi {
     @GET("rest/v1/rewards?is_active=eq.true&select=*&order=ecopoints_cost.asc")
     suspend fun getActiveRewards(): List<RewardDto>
 
+    @retrofit2.http.Headers("Prefer: return=representation")
     @POST("rest/v1/reward_claims")
     suspend fun claimReward(@Body claim: CreateClaimDto): List<RewardClaimDto>
 
     // ── Fase 2: Retiros a Domicilio ──
+    @retrofit2.http.Headers("Prefer: return=representation")
     @POST("rest/v1/pickup_requests")
     suspend fun createPickupRequest(@Body request: CreatePickupRequestDto): List<PickupRequestDto>
 }

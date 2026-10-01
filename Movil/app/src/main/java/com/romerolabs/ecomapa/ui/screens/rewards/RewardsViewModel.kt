@@ -16,7 +16,9 @@ import kotlinx.coroutines.launch
 
 data class RewardsUiState(
     val rewards: List<Reward> = emptyList(),
+    val claimedCoupons: List<RewardClaim> = emptyList(),
     val totalPoints: Int = 0,
+    val selectedTab: Int = 0, // 0: Recompensas, 1: Mis Cupones
     val isLoading: Boolean = false,
     val claimedCoupon: RewardClaim? = null,
     val errorMessage: String? = null
@@ -39,15 +41,21 @@ class RewardsViewModel(application: Application) : AndroidViewModel(application)
             _uiState.update { it.copy(isLoading = true, errorMessage = null) }
             val points = store.getInt(GamificationStore.ECO_TOTAL_POINTS)
             val rewards = rewardRepository.getRewards()
+            val claimed = rewardRepository.getClaimedCoupons()
 
             _uiState.update {
                 it.copy(
                     rewards = rewards,
+                    claimedCoupons = claimed,
                     totalPoints = points,
                     isLoading = false
                 )
             }
         }
+    }
+
+    fun setTab(index: Int) {
+        _uiState.update { it.copy(selectedTab = index) }
     }
 
     fun claimReward(reward: Reward) {
@@ -58,9 +66,11 @@ class RewardsViewModel(application: Application) : AndroidViewModel(application)
             result.fold(
                 onSuccess = { claim ->
                     val newPoints = store.getInt(GamificationStore.ECO_TOTAL_POINTS)
+                    val updatedClaimed = rewardRepository.getClaimedCoupons()
                     _uiState.update {
                         it.copy(
                             claimedCoupon = claim,
+                            claimedCoupons = updatedClaimed,
                             totalPoints = newPoints,
                             isLoading = false
                         )

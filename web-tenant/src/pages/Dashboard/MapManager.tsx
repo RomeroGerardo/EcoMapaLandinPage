@@ -403,7 +403,7 @@ export const MapManager: React.FC = () => {
       </div>
 
       {/* MAPA INTERACTIVO CON GEOLOCALIZACIÓN ACTIVADA */}
-      <div className="rounded-2xl border bg-card shadow-lg overflow-hidden relative">
+      <div className="rounded-2xl border bg-card shadow-lg overflow-hidden relative z-0 isolate">
         <div className="p-3.5 border-b flex flex-wrap items-center justify-between gap-3 bg-muted/20">
           <div className="flex items-center gap-2 text-xs">
             <span className="font-semibold flex items-center gap-1.5">
@@ -432,9 +432,9 @@ export const MapManager: React.FC = () => {
           </div>
         </div>
 
-        {/* Contenedor del Mapa Leaflet */}
-        <div className="relative w-full h-[380px] bg-muted/10">
-          <div ref={mapContainerRef} className="w-full h-full" />
+        {/* Contenedor del Mapa Leaflet (aislado en z-0) */}
+        <div className="relative w-full h-[380px] bg-muted/10 z-0 isolate">
+          <div ref={mapContainerRef} className="w-full h-full z-0" />
 
           {/* Leyenda de colores flotante */}
           <div className="absolute bottom-3 left-3 z-[400] bg-background/95 backdrop-blur border p-2.5 rounded-xl shadow-md text-xs space-y-1">
@@ -638,8 +638,8 @@ export const MapManager: React.FC = () => {
 
       {/* FORMULARIO DINÁMICO MODAL CON CAPTURA GPS */}
       {isModalOpen && (
-        <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4">
-          <div className="w-full max-w-xl rounded-2xl bg-card border shadow-2xl p-6 space-y-4 animate-in fade-in zoom-in-95">
+        <div className="fixed inset-0 z-[9999] bg-black/70 backdrop-blur-sm flex items-center justify-center p-4">
+          <div className="w-full max-w-xl rounded-2xl bg-card border shadow-2xl p-6 space-y-4 animate-in fade-in zoom-in-95 relative z-[10000]">
             <div className="flex items-center justify-between border-b pb-3">
               <div>
                 <h3 className="text-lg font-bold text-foreground flex items-center gap-2">

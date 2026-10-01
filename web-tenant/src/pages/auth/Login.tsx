@@ -249,7 +249,7 @@ export function Login() {
 
         {/* Footer info */}
         <p className="text-center text-xs text-muted-foreground">
-          EcoMapa V2.1 • Romero Labs
+          EcoMapa V2.1 • CivicLoop Technologies
         </p>
       </div>
     </div>

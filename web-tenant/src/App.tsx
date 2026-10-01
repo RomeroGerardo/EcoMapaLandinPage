@@ -5,7 +5,6 @@ import { ProtectedRoute, PublicOnlyRoute } from "./components/auth/ProtectedRout
 
 // Layouts
 import { DashboardLayout } from "./components/layout/DashboardLayout";
-import { TenantLayout } from "./layout/TenantLayout";
 
 // Auth Page
 import { Login } from "./pages/auth/Login";
@@ -71,8 +70,8 @@ function App() {
             <Route path="settings" element={<Settings />} />
           </Route>
 
-          {/* Tenant Backoffice Branch */}
-          <Route path="/backoffice" element={<TenantLayout />}>
+          {/* Tenant Backoffice Branch (Unificado dentro de DashboardLayout) */}
+          <Route path="/backoffice" element={<DashboardLayout />}>
             <Route index element={<MyPoints />} />
             <Route path="stats" element={<Stats />} />
             <Route path="settings" element={<TenantSettings />} />

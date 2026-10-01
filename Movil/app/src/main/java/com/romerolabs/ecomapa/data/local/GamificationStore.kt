@@ -23,6 +23,7 @@ class GamificationStore(private val context: Context) {
         val ECO_LAST_QUERY = stringPreferencesKey("eco_last_query")
         val ECO_STREAK_DAYS = intPreferencesKey("eco_streak_days")
         val ECO_GLASS_COUNT = intPreferencesKey("eco_glass_count")
+        val ECO_CLAIMED_COUPONS = stringPreferencesKey("eco_claimed_coupons")
     }
 
     private val dataStore get() = context.gamificationDataStore
@@ -41,5 +42,22 @@ class GamificationStore(private val context: Context) {
 
     suspend fun setString(key: Preferences.Key<String>, value: String) {
         dataStore.edit { prefs -> prefs[key] = value }
+    }
+
+    suspend fun getClaimedCoupons(): List<com.romerolabs.ecomapa.domain.model.RewardClaim> {
+        val json = getString(ECO_CLAIMED_COUPONS) ?: return emptyList()
+        return try {
+            val type = object : com.google.gson.reflect.TypeToken<List<com.romerolabs.ecomapa.domain.model.RewardClaim>>() {}.type
+            com.google.gson.Gson().fromJson(json, type) ?: emptyList()
+        } catch (e: Exception) {
+            emptyList()
+        }
+    }
+
+    suspend fun saveClaimedCoupon(claim: com.romerolabs.ecomapa.domain.model.RewardClaim) {
+        val current = getClaimedCoupons().toMutableList()
+        current.add(0, claim)
+        val json = com.google.gson.Gson().toJson(current)
+        setString(ECO_CLAIMED_COUPONS, json)
     }
 }

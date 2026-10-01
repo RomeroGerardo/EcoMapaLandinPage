@@ -6,17 +6,19 @@ import {
   Truck,
   Users,
 } from "lucide-react";
+import { useAuthStore } from "@/store/useAuthStore";
 
 export const SustainabilityReport: React.FC = () => {
+  const activeTenant = useAuthStore((state) => state.activeTenant);
   const [selectedPeriod, setSelectedPeriod] = useState("Septiembre 2026");
-  const [tenantName] = useState("Municipalidad de Villa Carlos Paz");
+  const tenantName = activeTenant?.name || "Municipalidad de Villa Carlos Paz";
 
   const handlePrint = () => {
     window.print();
   };
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 print:space-y-0">
       {/* Encabezado y Acciones de Exportación (se ocultan al imprimir con print:hidden) */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 print:hidden">
         <div>
@@ -52,7 +54,7 @@ export const SustainabilityReport: React.FC = () => {
       </div>
 
       {/* DOCUMENTO FORMATEADO PARA AUDITORÍA AMBIENTAL */}
-      <div className="rounded-2xl border bg-card p-8 md:p-10 shadow-lg space-y-8 print:border-none print:shadow-none print:p-0">
+      <div className="rounded-2xl border bg-card p-8 md:p-10 shadow-lg space-y-8 print-clean-page print:border-none print:shadow-none print:p-0 print:m-0 print:bg-white print:text-black">
         {/* Membrete Oficial del Informe */}
         <div className="border-b pb-6 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
           <div>
@@ -61,9 +63,9 @@ export const SustainabilityReport: React.FC = () => {
                 Informe Oficial de Auditoría Ambiental
               </span>
             </div>
-            <h2 className="text-2xl font-extrabold text-foreground mt-2">{tenantName}</h2>
-            <p className="text-xs text-muted-foreground">
-              Plataforma EcoMapa V2.1 · Módulo B2G / RSE · Fecha de emisión: {new Date().toLocaleDateString("es-AR")}
+            <h2 className="text-2xl font-extrabold text-foreground print:text-black mt-2">{tenantName}</h2>
+            <p className="text-xs text-muted-foreground print:text-gray-600">
+              Plataforma EcoMapa V2.1 · CivicLoop Technologies S.A.S. · Fecha de emisión: {new Date().toLocaleDateString("es-AR")}
             </p>
           </div>
 
@@ -199,7 +201,7 @@ export const SustainabilityReport: React.FC = () => {
           <div>
             <div className="border-b border-muted-foreground/30 w-48 mx-auto pb-8 mb-2" />
             <p className="font-bold text-foreground">Auditoría Externa de Economía Circular</p>
-            <p className="text-muted-foreground">EcoMapa Certificación Romero Labs</p>
+            <p className="text-muted-foreground">EcoMapa Certificación · CivicLoop Technologies S.A.S.</p>
           </div>
         </div>
       </div>

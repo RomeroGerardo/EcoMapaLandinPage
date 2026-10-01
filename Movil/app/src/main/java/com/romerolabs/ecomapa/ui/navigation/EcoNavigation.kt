@@ -14,6 +14,7 @@ import com.romerolabs.ecomapa.ui.screens.rewards.RewardsScreen
  */
 object EcoRoutes {
     const val HOME = "home"
+    const val CHAT = "chat"
     const val BADGES = "badges"
     const val REWARDS = "rewards"
     const val PICKUP = "pickup"
@@ -29,6 +30,9 @@ fun EcoNavigation() {
     ) {
         composable(EcoRoutes.HOME) {
             HomeScreen(
+                onNavigateToChat = {
+                    navController.navigate(EcoRoutes.CHAT)
+                },
                 onNavigateToBadges = {
                     navController.navigate(EcoRoutes.BADGES)
                 },
@@ -37,6 +41,13 @@ fun EcoNavigation() {
                 },
                 onNavigateToPickup = {
                     navController.navigate(EcoRoutes.PICKUP)
+                }
+            )
+        }
+        composable(EcoRoutes.CHAT) {
+            com.romerolabs.ecomapa.ui.screens.chat.ChatScreen(
+                onNavigateBack = {
+                    navController.popBackStack()
                 }
             )
         }

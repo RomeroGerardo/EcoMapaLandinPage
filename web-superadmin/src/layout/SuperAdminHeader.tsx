@@ -59,8 +59,8 @@ export const SuperAdminHeader: React.FC<HeaderProps> = ({ onRefresh, isRefreshin
             <UserCheck className="h-4 w-4" />
           </div>
           <div className="hidden sm:block text-left">
-            <p className="text-xs font-semibold text-slate-800 dark:text-slate-200 leading-tight">SuperAdmin Romero</p>
-            <p className="text-[10px] text-emerald-600 dark:text-emerald-400 font-mono leading-tight">root@ecomapa.org</p>
+            <p className="text-xs font-bold text-slate-900 dark:text-white leading-tight">CivicLoop Technologies</p>
+            <p className="text-[10px] text-indigo-600 dark:text-indigo-400 font-mono leading-tight">Master Control · EcoMapa</p>
           </div>
         </div>
       </div>

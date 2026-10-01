@@ -106,6 +106,9 @@ dependencies {
     // ── DataStore (Gamification persistence) ──
     implementation("androidx.datastore:datastore-preferences:1.1.1")
 
+    // ── QR Code Generator ──
+    implementation("com.google.zxing:core:3.5.3")
+
     // ── Coroutines ──
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.8.1")
 
