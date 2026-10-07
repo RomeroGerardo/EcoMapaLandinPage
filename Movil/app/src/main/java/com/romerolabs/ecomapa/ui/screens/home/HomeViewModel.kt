@@ -42,8 +42,8 @@ class HomeViewModel(application: Application) : AndroidViewModel(application) {
     private val _uiState = MutableStateFlow(HomeUiState())
     val uiState: StateFlow<HomeUiState> = _uiState.asStateFlow()
 
-    private var currentLat = -31.4201
-    private var currentLng = -64.1888
+    private var currentLat = -31.7148
+    private var currentLng = -63.5110
 
     init {
         // MEJORA-01: Mensaje de bienvenida real como primer ChatMessage.
@@ -133,7 +133,9 @@ class HomeViewModel(application: Application) : AndroidViewModel(application) {
                         aiResponse = aiResponse
                     )
 
-                    val gamResult = gamificationRepository.processReward(aiResponse)
+                    val gamResult = if (aiResponse.ecopointsEarned > 0) {
+                        gamificationRepository.processReward(aiResponse)
+                    } else null
 
                     val centerPoint = aiResponse.suggestedPoint?.let {
                         if (it.latitude != 0.0 && it.longitude != 0.0) {
@@ -145,9 +147,9 @@ class HomeViewModel(application: Application) : AndroidViewModel(application) {
                         it.copy(
                             chatMessages = it.chatMessages + aiMessage,
                             isLoading = false,
-                            totalPoints = gamResult.totalPoints,
+                            totalPoints = gamResult?.totalPoints ?: it.totalPoints,
                             centerOnPoint = centerPoint,
-                            newBadgeUnlocked = gamResult.newBadges.firstOrNull()
+                            newBadgeUnlocked = gamResult?.newBadges?.firstOrNull()
                         )
                     }
                 },

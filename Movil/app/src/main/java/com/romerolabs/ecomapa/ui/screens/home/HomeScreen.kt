@@ -84,6 +84,7 @@ fun HomeScreen(
     onNavigateToBadges: () -> Unit,
     onNavigateToRewards: () -> Unit,
     onNavigateToPickup: () -> Unit,
+    onNavigateToScan: () -> Unit,
     viewModel: HomeViewModel = viewModel()
 ) {
     val uiState by viewModel.uiState.collectAsState()
@@ -312,53 +313,102 @@ fun HomeScreen(
                 )
             }
 
-            // Píldora de búsqueda flotante "Pregúntale a EcoIA 🤖"
-            Surface(
+            // Área inferior: píldora de EcoIA + botón de Escanear con IA
+            Column(
                 modifier = Modifier
                     .align(Alignment.BottomCenter)
-                    .padding(horizontal = 16.dp, vertical = 14.dp)
-                    .fillMaxWidth()
-                    .clickable { onNavigateToChat() },
-                shape = RoundedCornerShape(24.dp),
-                color = MaterialTheme.colorScheme.surface,
-                shadowElevation = 8.dp,
-                tonalElevation = 4.dp,
-                border = BorderStroke(1.dp, EmeraldPrimary.copy(alpha = 0.35f))
+                    .padding(horizontal = 12.dp, vertical = 10.dp)
+                    .fillMaxWidth(),
+                verticalArrangement = Arrangement.spacedBy(8.dp)
             ) {
-                Row(
-                    modifier = Modifier.padding(horizontal = 16.dp, vertical = 12.dp),
-                    verticalAlignment = Alignment.CenterVertically
+                // Botón de Escanear con IA (destacado, superior)
+                Surface(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .clickable { onNavigateToScan() },
+                    shape = RoundedCornerShape(20.dp),
+                    color = EmeraldPrimaryDark,
+                    shadowElevation = 10.dp,
+                    tonalElevation = 6.dp
                 ) {
-                    Box(
-                        modifier = Modifier
-                            .size(38.dp)
-                            .clip(CircleShape)
-                            .background(EmeraldLight),
-                        contentAlignment = Alignment.Center
+                    Row(
+                        modifier = Modifier.padding(horizontal = 20.dp, vertical = 14.dp),
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.Center
                     ) {
-                        Text("🤖", fontSize = 18.sp)
+                        Text("📸", fontSize = 22.sp)
+                        Spacer(modifier = Modifier.width(10.dp))
+                        Column(modifier = Modifier.weight(1f)) {
+                            Text(
+                                text = "Analizá tu residuo con IA",
+                                style = MaterialTheme.typography.bodyMedium,
+                                fontWeight = FontWeight.Bold,
+                                color = Color.White
+                            )
+                            Text(
+                                text = "Sacá una foto → te decimos qué hacer 🚛",
+                                style = MaterialTheme.typography.labelSmall,
+                                fontSize = 11.sp,
+                                color = Color.White.copy(alpha = 0.85f)
+                            )
+                        }
+                        androidx.compose.material.icons.Icons.Filled.AutoAwesome.let { icon ->
+                            Icon(
+                                imageVector = icon,
+                                contentDescription = null,
+                                tint = Color(0xFFFFD740),
+                                modifier = Modifier.size(22.dp)
+                            )
+                        }
                     }
-                    Spacer(modifier = Modifier.width(12.dp))
-                    Column(modifier = Modifier.weight(1f)) {
-                        Text(
-                            text = "¿Qué residuo querés reciclar?",
-                            style = MaterialTheme.typography.bodyMedium,
-                            fontWeight = FontWeight.Bold,
-                            color = MaterialTheme.colorScheme.onSurface
-                        )
-                        Text(
-                            text = "Consultar a EcoIA con IA en tiempo real 🌿",
-                            style = MaterialTheme.typography.labelSmall,
-                            fontSize = 11.sp,
-                            color = EmeraldPrimaryDeep
+                }
+
+                // Píldora de consulta a EcoIA (chat de texto, inferior)
+                Surface(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .clickable { onNavigateToChat() },
+                    shape = RoundedCornerShape(20.dp),
+                    color = MaterialTheme.colorScheme.surface,
+                    shadowElevation = 6.dp,
+                    tonalElevation = 3.dp,
+                    border = androidx.compose.foundation.BorderStroke(1.dp, EmeraldPrimary.copy(alpha = 0.35f))
+                ) {
+                    Row(
+                        modifier = Modifier.padding(horizontal = 16.dp, vertical = 10.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Box(
+                            modifier = Modifier
+                                .size(34.dp)
+                                .clip(CircleShape)
+                                .background(EmeraldLight),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Text("🤖", fontSize = 16.sp)
+                        }
+                        Spacer(modifier = Modifier.width(12.dp))
+                        Column(modifier = Modifier.weight(1f)) {
+                            Text(
+                                text = "¿Qué residuo querés reciclar?",
+                                style = MaterialTheme.typography.bodySmall,
+                                fontWeight = FontWeight.Bold,
+                                color = MaterialTheme.colorScheme.onSurface
+                            )
+                            Text(
+                                text = "Consultá a EcoIA con texto 🌿",
+                                style = MaterialTheme.typography.labelSmall,
+                                fontSize = 10.sp,
+                                color = EmeraldPrimaryDeep
+                            )
+                        }
+                        Icon(
+                            imageVector = Icons.Default.Search,
+                            contentDescription = "Consultar a EcoIA",
+                            tint = EmeraldPrimaryDark,
+                            modifier = Modifier.size(20.dp)
                         )
                     }
-                    Icon(
-                        imageVector = Icons.Default.Search,
-                        contentDescription = "Consultar a EcoIA",
-                        tint = EmeraldPrimaryDark,
-                        modifier = Modifier.size(24.dp)
-                    )
                 }
             }
         }

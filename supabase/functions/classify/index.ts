@@ -9,7 +9,10 @@ const corsHeaders = {
 
 const SUPABASE_URL = Deno.env.get("SUPABASE_URL") || "https://uuagrhbdgyvopezoakia.supabase.co";
 const SUPABASE_ANON_KEY = Deno.env.get("SUPABASE_ANON_KEY") || "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InV1YWdyaGJkZ3l2b3Blem9ha2lhIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzY4OTA1MjcsImV4cCI6MjA5MjQ2NjUyN30.JaoX421xZ-kIdz_Z6LwFHXxtwVSYa5ICdGvGRCR2Yt8";
-const GROQ_API_KEY = Deno.env.get("GROQ_API_KEY") || "";
+
+// Google Gemini API Key
+const GEMINI_API_KEY = Deno.env.get("GEMINI_API_KEY") || "";
+const MODELS_TO_TRY = ["gemini-3.5-flash-lite", "gemini-3.1-flash-lite", "gemini-3-flash-preview", "gemini-3.5-flash"];
 
 function formatPoint(row: any) {
   if (!row) return null;
@@ -25,97 +28,98 @@ function formatPoint(row: any) {
   };
 }
 
-// Clasificador inteligente local por palabras clave
-function classifyLocally(text: string, nearbyPoints: any[]) {
-  const lower = text.toLowerCase();
-  
-  if (lower.includes("pila") || lower.includes("bateria") || lower.includes("batería")) {
-    const point = nearbyPoints.find((p) => p.type === "peligroso" || p.color === "rojo" || p.type === "rep_oficial") || nearbyPoints[0];
+// Clasificador local de respaldo si la API externa no respondiera
+function classifyLocally(text: string, nearbyPoints: any[], userName: string) {
+  const lower = text.toLowerCase().trim();
+
+  // Detección de saludos o mensajes iniciales sin residuo
+  const saludos = ["hola", "buenas", "buen dia", "buenos dias", "buenas tardes", "buenas noches", "que onda", "que tal", "como andas", "como estas", "hola!", "holaa", "holi"];
+  const isSaludo = saludos.some(s => lower === s || lower.startsWith(s + " ") || lower.endsWith(" " + s));
+
+  if (isSaludo || lower.length < 4) {
     return {
-      waste_type: "Pilas y Baterías",
-      container_type: "peligroso",
-      container_color: "rojo",
-      suggested_point: formatPoint(point),
-      environmental_impact: "Tené en cuenta que CADA pila alcalina puede contaminar hasta 167.000 litros de agua.",
-      ecopoints_earned: 50,
-      friendly_message: "¡Qué onda! Excelente iniciativa. Las pilas tienen metales pesados re peligrosos, así que mandala directo al contenedor rojo o punto oficial REP. ¡Seguí así!"
+      waste_type: null,
+      container_type: null,
+      container_color: null,
+      suggested_point: null,
+      environmental_impact: null,
+      ecopoints_earned: 0,
+      friendly_message: `¡Qué hacés, ${userName}! 🌿 Todo bien por acá. Contame qué residuo u objeto tenés para reciclar o descartar hoy y te digo a dónde llevarlo o si coordinamos un retiro.`
     };
   }
 
-  if (lower.includes("vidrio") || lower.includes("botella de vidrio") || lower.includes("frasco") || lower.includes("copa")) {
+  if (lower.includes("pila") || lower.includes("bateria") || lower.includes("batería") || lower.includes("celular") || lower.includes("cable") || lower.includes("electronico")) {
+    const point = nearbyPoints.find((p) => p.type === "electronico" || p.type === "peligroso" || p.color === "rojo") || nearbyPoints[0];
+    return {
+      waste_type: "Pilas & Residuos Electrónicos (RAEE)",
+      container_type: "electronico",
+      container_color: "rojo",
+      suggested_point: formatPoint(point),
+      environmental_impact: "Evitás que metales pesados como litio y mercurio contaminen hasta 167.000 litros de agua por unidad.",
+      ecopoints_earned: 40,
+      friendly_message: `¡Excelente iniciativa, ${userName}! Los componentes electrónicos y pilas no van a la basura común. Llévalos al contenedor rojo o buzón RAEE más cercano. ¡Seguí así!`
+    };
+  }
+
+  if (lower.includes("vidrio") || lower.includes("frasco") || lower.includes("copa")) {
     const point = nearbyPoints.find((p) => p.type === "vidrio" || p.color === "verde") || nearbyPoints[0];
     return {
       waste_type: "Vidrio",
       container_type: "vidrio",
       container_color: "verde",
       suggested_point: formatPoint(point),
-      environmental_impact: "Ahorras un 30% de energía en la fundición de nuevo vidrio.",
+      environmental_impact: "El vidrio es 100% reciclable infinitas veces. Ahorrás un 30% de energía en su fundición.",
       ecopoints_earned: 30,
-      friendly_message: "El vidrio es 100% reciclable de forma infinita. Asegúrate de enjuagarlo antes de depositarlo en la campana verde."
+      friendly_message: `¡Genial, ${userName}! El vidrio va en el contenedor verde. Enjuagalo bien antes de tirarlo para no ensuciar el resto de los materiales.`
     };
   }
 
   if (lower.includes("plastico") || lower.includes("plástico") || lower.includes("pet") || lower.includes("botella") || lower.includes("bolsa") || lower.includes("sachet")) {
     const point = nearbyPoints.find((p) => p.type === "plastico" || p.color === "amarillo") || nearbyPoints[0];
     return {
-      waste_type: "Plásticos & PET",
+      waste_type: "Plásticos & Envases",
       container_type: "plastico",
       container_color: "amarillo",
       suggested_point: formatPoint(point),
-      environmental_impact: "Evitas que el plástico tarde hasta 500 años en degradarse.",
-      ecopoints_earned: 20,
-      friendly_message: "Limpia y aplasta la botella para optimizar el espacio del contenedor amarillo. ¡Gran trabajo!"
+      environmental_impact: "Evitás que el plástico tarde hasta 500 años en descomponerse en el ecosistema.",
+      ecopoints_earned: 25,
+      friendly_message: `¡De diez, ${userName}! Los plásticos van en la campana amarilla. Aplastá bien las botellas para ahorrar espacio en el contenedor.`
     };
   }
 
-  if (lower.includes("carton") || lower.includes("cartón") || lower.includes("papel") || lower.includes("caja") || lower.includes("diario") || lower.includes("revista")) {
+  if (lower.includes("carton") || lower.includes("cartón") || lower.includes("papel") || lower.includes("caja")) {
     const point = nearbyPoints.find((p) => p.type === "papel_carton" || p.color === "azul") || nearbyPoints[0];
     return {
       waste_type: "Papel & Cartón",
       container_type: "papel_carton",
       container_color: "azul",
       suggested_point: formatPoint(point),
-      environmental_impact: "Salvas árboles y ahorras hasta 140 litros de agua por kilo de papel reciclado.",
-      ecopoints_earned: 20,
-      friendly_message: "Mantén el cartón seco y desarmado antes de depositarlo en el contenedor azul."
+      environmental_impact: "Por cada tonelada de cartón reciclado se salvan 17 árboles y miles de litros de agua.",
+      ecopoints_earned: 25,
+      friendly_message: `¡Bárbaro, ${userName}! El cartón y papel van en el contenedor azul. Asegurate de que esté limpio y seco, y desarmá las cajas para que no ocupen tanto lugar.`
     };
   }
 
-  if (lower.includes("remedio") || lower.includes("medicamento") || lower.includes("blister") || lower.includes("jarabe") || lower.includes("farmacia")) {
-    const point = nearbyPoints.find((p) => p.type === "farmacia" || p.color === "rojo") || nearbyPoints[0];
-    return {
-      waste_type: "Medicamentos Vencidos",
-      container_type: "farmacia",
-      container_color: "rojo",
-      suggested_point: formatPoint(point),
-      environmental_impact: "Evitas la contaminación de napas subterráneas y fauna acuática.",
-      ecopoints_earned: 40,
-      friendly_message: "Los medicamentos vencidos no deben tirarse a la basura común. Llévalos al buzón de residuos farmacéuticos de una farmacia adherida."
-    };
-  }
-
-  if (lower.includes("mueble") || lower.includes("sillon") || lower.includes("sillón") || lower.includes("colchon") || lower.includes("colchón") || lower.includes("escombro") || lower.includes("chatarra") || lower.includes("rama")) {
+  if (lower.includes("mueble") || lower.includes("sillon") || lower.includes("sillón") || lower.includes("colchon") || lower.includes("heladera") || lower.includes("lavarropas")) {
     return {
       waste_type: "Residuo Voluminoso",
       container_type: "especial",
       container_color: "naranja",
-      suggested_point: formatPoint(nearbyPoints[0]),
-      environmental_impact: "Permite la recuperación formal de materiales pesados por cooperativas.",
+      suggested_point: null,
+      environmental_impact: "Permite la recuperación formal y segura de materiales pesados por las cuadrillas de la municipalidad.",
       ecopoints_earned: 30,
-      friendly_message: "Para residuos pesados o voluminosos, puedes utilizar la función de 'Retiro a Domicilio 🚛' de EcoMapa para que una cuadrilla pase a buscarlo por tu casa."
+      friendly_message: `¡Ojo, ${userName}! Al ser un objeto pesado/voluminoso, no hace falta que hagas fuerza. Podés solicitar el Retiro a Domicilio 🚛 desde la app y un vehículo municipal pasa a buscarlo por tu puerta.`
     };
   }
 
-  // Fallback general
-  const point = nearbyPoints[0] || null;
   return {
-    waste_type: "Residuo General / Reciclable",
-    container_type: "general",
-    container_color: "verde",
-    suggested_point: formatPoint(point),
-    environmental_impact: "Contribuyes a la economía circular y a una ciudad más limpia.",
-    ecopoints_earned: 20,
-    friendly_message: "Para reciclar este material, asegúrate de que esté limpio y seco antes de depositarlo en el punto verde más cercano."
+    waste_type: null,
+    container_type: null,
+    container_color: null,
+    suggested_point: null,
+    environmental_impact: null,
+    ecopoints_earned: 0,
+    friendly_message: `¡Hola, ${userName}! Para ayudarte mejor, contame exactamente qué material querés reciclar (por ejemplo botellas de plástico, cartón, vidrio, pilas o muebles) y te indico el punto más cercano.`
   };
 }
 
@@ -144,12 +148,14 @@ serve(async (req: Request) => {
       );
     }
 
-    const lat = Number(user_lat) || -31.4201;
-    const lng = Number(user_lng) || -64.1888;
+    // Coordenadas con fallback a Matorrales, Córdoba
+    const lat = Number(user_lat) || -31.7148;
+    const lng = Number(user_lng) || -63.5110;
+    const userName = (user_name && user_name.trim().length > 0) ? user_name.trim() : "Gerardo";
 
     const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-    // Obtener puntos cercanos o activos
+    // Obtener puntos cercanos al usuario
     let nearbyPoints: any[] = [];
     try {
       const { data: rpcPoints } = await supabase.rpc("get_nearby_points", {
@@ -172,68 +178,112 @@ serve(async (req: Request) => {
       nearbyPoints = fallbackPoints || [];
     }
 
-    let resultResponse: any = null;
+    // ─────────────────────────────────────────────
+    // System Prompt para Google Gemini
+    // ─────────────────────────────────────────────
+    const systemPrompt = `Sos EcoAsistente, el consultor ambiental municipal inteligente de EcoMapa.
+Estás conversando con ${userName}. Hablale de forma súper cercana, cálida y con mucha onda argentina/cordobesa ("¡Qué hacés!", "¡Genial!", "Che", etc.).
 
-    // Intentar con Groq API si la key existe
-    if (GROQ_API_KEY && GROQ_API_KEY.startsWith("gsk_")) {
-      try {
-        const userName = user_name || 'amigo/a';
-        const systemPrompt = `Eres EcoAsistente, un amigo súper buena onda experto en reciclaje.
-Estás hablando con ${userName}. Dirígete a esta persona por su nombre, con un tono muy amigable, cercano y cool (con onda).
-Ubicación usuario: lat ${lat}, lng ${lng}.
-Puntos cercanos: ${JSON.stringify(nearbyPoints)}
+UBICACIÓN ACTUAL DEL USUARIO: latitud ${lat}, longitud ${lng}
+PUNTOS DE RECICLAJE DISPONIBLES EN LA ZONA:
+${JSON.stringify(nearbyPoints.slice(0, 8))}
 
-Responde ÚNICAMENTE en este formato JSON:
+REGLAS FUNDAMENTALES DE COMPORTAMIENTO:
+1. SI EL MENSAJE ES UN SALUDO, AGRADECIMIENTO O CONSULTA GENERAL (ej: "hola", "buenas", "cómo andás", "qué hacés", "gracias", "¿cómo funciona EcoMapa?"):
+   - Respondé de forma amigable, cálida y natural saludando a ${userName}.
+   - Invitalo a contarte qué residuo u objeto tiene para reciclar o descartar hoy.
+   - waste_type: null
+   - container_type: null
+   - container_color: null
+   - suggested_point: null
+   - environmental_impact: null
+   - ecopoints_earned: 0
+   - ¡NO inventes ningún contenedor ni punto si el usuario no especificó un residuo!
+
+2. SI EL USUARIO MENCIONA UN RESIDUO O MATERIAL:
+   - Identificá con precisión qué tipo de residuo es y en qué contenedor va (Amarillo: plásticos/latas; Azul: papel/cartón; Verde: vidrio; Rojo: pilas/baterías/electrónicos pequeños RAEE/medicamentos).
+   - Si es un OBJETO PESADO O VOLUMINOSO (muebles, sillones, heladeras, lavarropas, colchones, escombros, poda grande):
+     * Explicá que la municipalidad cuenta con el servicio de Retiro a Domicilio 🚛 con cuadrillas y camiones, para que no tenga que cargarlo.
+     * container_type: "especial", container_color: "naranja", suggested_point: null.
+   - Si es RECICLABLE COMÚN:
+     * Elegí de la lista el suggested_point MÁS CERCANO y adecuado para ese residuo.
+     * Explicá brevemente cómo llevarlo (limpio, seco, aplastado).
+     * Proporcioná un dato de impacto ambiental real y motivador.
+     * ecopoints_earned: número entre 20 y 50 según el residuo.
+
+FORMATO DE RESPUESTA: Respondé OBLIGATORIAMENTE en JSON válido con este esquema:
 {
-  "waste_type": "string",
-  "container_type": "string",
-  "container_color": "string",
+  "waste_type": "string o null",
+  "container_type": "string o null",
+  "container_color": "string o null",
   "suggested_point": {
-    "id": "uuid",
+    "id": "uuid o string",
     "name": "string",
-    "address": "string",
+    "address": "string o null",
     "latitude": number,
     "longitude": number,
     "distance_km": number
-  },
-  "environmental_impact": "string (Ej: datos reales y proporcionales. En vez de 600mil L por 1 pila, aclara que es POR CADA unidad, o da un dato real interesante y preciso)",
+  } o null,
+  "environmental_impact": "string o null",
   "ecopoints_earned": number,
-  "friendly_message": "string (Mensaje dirigiéndote a ${userName} con mucha onda, emojis y motivación)"
+  "friendly_message": "string (mensaje cálido con onda y emojis dirigiéndote a ${userName})"
 }`;
 
-        const groqRes = await fetch("https://api.groq.com/openai/v1/chat/completions", {
-          method: "POST",
-          headers: {
-            Authorization: `Bearer ${GROQ_API_KEY}`,
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            model: "openai/gpt-oss-120b",
-            messages: [
-              { role: "system", content: systemPrompt },
-              { role: "user", content: message },
-            ],
-            temperature: 0.3,
-            max_tokens: 800,
-            response_format: { type: "json_object" },
-          }),
-        });
+    let resultResponse: any = null;
 
-        if (groqRes.ok) {
-          const groqData = await groqRes.json();
-          const content = groqData.choices?.[0]?.message?.content;
-          if (content) {
-            resultResponse = JSON.parse(content);
+    // Intentar con Google Gemini API
+    if (GEMINI_API_KEY) {
+      for (const model of MODELS_TO_TRY) {
+        try {
+          const geminiUrl = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${GEMINI_API_KEY}`;
+          const geminiRes = await fetch(geminiUrl, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              system_instruction: {
+                parts: [{ text: systemPrompt }],
+              },
+              contents: [
+                {
+                  role: "user",
+                  parts: [{ text: message }],
+                },
+              ],
+              generationConfig: {
+                response_mime_type: "application/json",
+                temperature: 0.2,
+              },
+            }),
+          });
+
+          if (geminiRes.ok) {
+            const data = await geminiRes.json();
+            const textContent = data.candidates?.[0]?.content?.parts?.[0]?.text;
+            if (textContent) {
+              const parsed = JSON.parse(textContent);
+              resultResponse = {
+                waste_type: parsed.waste_type || null,
+                container_type: parsed.container_type || null,
+                container_color: parsed.container_color || null,
+                suggested_point: parsed.suggested_point ? formatPoint(parsed.suggested_point) : null,
+                environmental_impact: parsed.environmental_impact || null,
+                ecopoints_earned: typeof parsed.ecopoints_earned === "number" ? parsed.ecopoints_earned : 0,
+                friendly_message: parsed.friendly_message || "¡Hola! ¿En qué residuo te puedo ayudar hoy? 🌿",
+              };
+              break; // Modelo exitoso, terminar bucle
+            }
+          } else {
+            console.warn(`Modelo ${model} falló con status ${geminiRes.status}`);
           }
+        } catch (modelErr) {
+          console.warn(`Error llamando a ${model}:`, modelErr);
         }
-      } catch (groqErr) {
-        console.warn("Groq API error, usando clasificador local:", groqErr);
       }
     }
 
-    // Si Groq no devolvió resultado, usar clasificador local
+    // Respaldo local si Gemini no devolvió respuesta
     if (!resultResponse) {
-      resultResponse = classifyLocally(message, nearbyPoints);
+      resultResponse = classifyLocally(message, nearbyPoints, userName);
     }
 
     // Registrar en ai_queries_log
@@ -241,10 +291,10 @@ Responde ÚNICAMENTE en este formato JSON:
     supabase.from("ai_queries_log").insert([
       {
         query_text: message.substring(0, 300),
-        waste_category: resultResponse.waste_type || "General",
+        waste_category: resultResponse.waste_type || "Consulta",
         container_type: resultResponse.container_type || "general",
         container_color: resultResponse.container_color || "verde",
-        ecopoints_awarded: resultResponse.ecopoints_earned || 20,
+        ecopoints_awarded: resultResponse.ecopoints_earned || 0,
         response_time_ms: durationMs,
         resolved_point_id: resultResponse.suggested_point?.id || null,
       }
@@ -257,17 +307,17 @@ Responde ÚNICAMENTE en este formato JSON:
         "Content-Type": "application/json",
       },
     });
+
   } catch (err: any) {
-    console.error("Error en classify:", err);
-    // Fallback de emergencia
+    console.error("Error general en classify:", err);
     const fallback = {
-      waste_type: "Residuo General",
-      container_type: "general",
-      container_color: "verde",
+      waste_type: null,
+      container_type: null,
+      container_color: null,
       suggested_point: null,
-      environmental_impact: "Reciclar protege nuestro planeta.",
-      ecopoints_earned: 20,
-      friendly_message: "Para reciclar este residuo, llévalo al punto verde más cercano asegurándote de que esté limpio y seco."
+      environmental_impact: null,
+      ecopoints_earned: 0,
+      friendly_message: "¡Hola! Estoy listo para ayudarte a reciclar. Contame qué residuo u objeto tenés y te digo dónde llevarlo 🌿"
     };
     return new Response(JSON.stringify(fallback), {
       status: 200,

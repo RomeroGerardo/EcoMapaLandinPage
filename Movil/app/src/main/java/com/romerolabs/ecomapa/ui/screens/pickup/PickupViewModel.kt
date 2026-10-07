@@ -108,4 +108,12 @@ class PickupViewModel(application: Application) : AndroidViewModel(application) 
     fun clearError() {
         _uiState.update { it.copy(errorMessage = null) }
     }
+
+    /**
+     * Pre-carga el tipo de residuo cuando el vecino llega desde el resultado del escáner de IA.
+     * Esto evita que tenga que seleccionarlo manualmente.
+     */
+    fun prefillFromScan(wasteType: String) {
+        _uiState.update { it.copy(wasteType = wasteType) }
+    }
 }

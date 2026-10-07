@@ -45,7 +45,7 @@ data class AiResponseDto(
             fallbackColor = containerColor ?: ""
         ),
         environmentalImpact = environmentalImpact ?: "",
-        ecopointsEarned = ecopointsEarned ?: 20,
+        ecopointsEarned = ecopointsEarned ?: 0,
         friendlyMessage = friendlyMessage ?: ""
     )
 }

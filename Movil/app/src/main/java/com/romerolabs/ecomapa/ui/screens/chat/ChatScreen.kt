@@ -117,7 +117,7 @@ fun ChatScreen(
                                         .padding(horizontal = 6.dp, vertical = 2.dp)
                                 ) {
                                     Text(
-                                        text = "LLaMA 3.3",
+                                        text = "Gemini Flash",
                                         fontSize = 9.sp,
                                         fontWeight = FontWeight.Bold,
                                         color = EmeraldPrimaryDeep

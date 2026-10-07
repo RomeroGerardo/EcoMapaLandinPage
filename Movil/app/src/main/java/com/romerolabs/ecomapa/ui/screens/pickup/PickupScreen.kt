@@ -62,11 +62,17 @@ import com.romerolabs.ecomapa.ui.theme.EmeraldPrimaryDark
 @Composable
 fun PickupScreen(
     onNavigateBack: () -> Unit,
+    prefilledWasteType: String? = null,
     viewModel: PickupViewModel = viewModel()
 ) {
     val uiState by viewModel.uiState.collectAsState()
     val snackbarHostState = remember { SnackbarHostState() }
     val scrollState = rememberScrollState()
+
+    // Si llegamos desde el escáner de IA, pre-cargar el tipo de residuo detectado
+    LaunchedEffect(prefilledWasteType) {
+        prefilledWasteType?.let { viewModel.prefillFromScan(it) }
+    }
 
     LaunchedEffect(uiState.errorMessage) {
         uiState.errorMessage?.let {

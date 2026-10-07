@@ -112,6 +112,9 @@ dependencies {
     // ── Coroutines ──
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.8.1")
 
+    // ── Coil (carga de imágenes — preview de foto en ScanScreen) ──
+    implementation("io.coil-kt:coil-compose:2.6.0")
+
     // ── Testing ──
     testImplementation("junit:junit:4.13.2")
     androidTestImplementation("androidx.test.ext:junit:1.2.1")

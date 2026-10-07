@@ -1,5 +1,14 @@
 package com.romerolabs.ecomapa.ui.components.map
 
+import android.content.Context
+import android.graphics.Bitmap
+import android.graphics.Canvas
+import android.graphics.Paint
+import android.graphics.Path
+import android.graphics.RectF
+import android.graphics.Typeface
+import android.graphics.drawable.BitmapDrawable
+import android.graphics.drawable.Drawable
 import android.graphics.drawable.GradientDrawable
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
@@ -108,13 +117,9 @@ fun EcoMapView(
                     if (point.distanceKm != null) append(" (${point.distanceKm} km)")
                 }
                 val colorInt = ColorMapper.getContainerColorInt(point.color)
-                val drawable = GradientDrawable().apply {
-                    shape = GradientDrawable.OVAL
-                    setSize(36, 36)
-                    setColor(colorInt)
-                    setStroke(3, 0xFFFFFFFF.toInt())
-                }
-                icon = drawable
+                val emoji = ColorMapper.getContainerEmoji(point.type, point.color)
+                val label = ColorMapper.getContainerTypeLabel(point.type, point.color)
+                icon = createContainerMarkerIcon(context, colorInt, emoji, label)
 
                 setOnMarkerClickListener { _, _ ->
                     val uri = android.net.Uri.parse("google.navigation:q=${point.latitude},${point.longitude}")
@@ -163,4 +168,127 @@ fun EcoMapView(
         factory = { mapView },
         modifier = modifier
     )
+}
+
+/**
+ * Genera un pin visual personalizado para el contenedor de reciclaje:
+ * - Pastilla superior oscura con borde de color y texto en letras mayúsculas con el tipo de desecho (PLÁSTICOS, VIDRIO, etc.)
+ * - Pin circular con marco blanco protector y color oficial del contenedor (amarillo, azul, verde, rojo)
+ * - Emoji / logo representativo del residuo en el centro (botella, cartón, vidrio, pila, electrónica)
+ * - Punta inferior orientada exactamente a la coordenada GPS
+ */
+private fun createContainerMarkerIcon(
+    context: Context,
+    colorInt: Int,
+    emoji: String,
+    label: String
+): Drawable {
+    val density = context.resources.displayMetrics.density
+
+    // Configuración del texto de la etiqueta (letras legibles en el mapa)
+    val textPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
+        color = android.graphics.Color.WHITE
+        textSize = 9.5f * density
+        typeface = Typeface.create(Typeface.DEFAULT, Typeface.BOLD)
+        textAlign = Paint.Align.CENTER
+    }
+
+    val textWidth = textPaint.measureText(label)
+    val pillPaddingH = 7f * density
+    val pillWidth = textWidth + (pillPaddingH * 2)
+    val pillHeight = 15f * density
+
+    // Dimensiones del pin circular
+    val pinRadius = 14f * density
+    val pinDiameter = pinRadius * 2
+    val tipHeight = 8f * density
+    val pinSpacing = 2f * density
+
+    val totalWidth = maxOf(pillWidth + (4 * density), pinDiameter + (8 * density)).toInt()
+    val totalHeight = (pillHeight + pinSpacing + pinDiameter + tipHeight + (3 * density)).toInt()
+
+    val bitmap = Bitmap.createBitmap(totalWidth, totalHeight, Bitmap.Config.ARGB_8888)
+    val canvas = Canvas(bitmap)
+
+    val centerX = totalWidth / 2f
+    val paint = Paint(Paint.ANTI_ALIAS_FLAG)
+
+    // 1. Dibujar la pastilla con el nombre del desecho (en la parte superior)
+    val pillLeft = centerX - (pillWidth / 2f)
+    val pillTop = 2f * density
+    val pillRight = centerX + (pillWidth / 2f)
+    val pillBottom = pillTop + pillHeight
+    val pillRadius = 4f * density
+    val pillRect = RectF(pillLeft, pillTop, pillRight, pillBottom)
+
+    // Sombra sutil de la pastilla
+    paint.color = 0x40000000
+    canvas.drawRoundRect(RectF(pillLeft, pillTop + 1f * density, pillRight, pillBottom + 1f * density), pillRadius, pillRadius, paint)
+
+    // Fondo negro azulado para alta visibilidad y contraste contra cualquier fondo
+    paint.color = 0xF0111827.toInt()
+    paint.style = Paint.Style.FILL
+    canvas.drawRoundRect(pillRect, pillRadius, pillRadius, paint)
+
+    // Borde de la pastilla con el color del contenedor
+    paint.color = colorInt
+    paint.style = Paint.Style.STROKE
+    paint.strokeWidth = 1.5f * density
+    canvas.drawRoundRect(pillRect, pillRadius, pillRadius, paint)
+    paint.style = Paint.Style.FILL
+
+    // Texto de la etiqueta centrado
+    val textY = pillTop + (pillHeight / 2f) - ((textPaint.descent() + textPaint.ascent()) / 2f)
+    canvas.drawText(label, centerX, textY, textPaint)
+
+    // 2. Dibujar el pin circular (debajo de la pastilla)
+    val pinCenterY = pillBottom + pinSpacing + pinRadius
+
+    // Sombra del círculo
+    paint.color = 0x33000000
+    canvas.drawCircle(centerX, pinCenterY + (1.5f * density), pinRadius, paint)
+
+    // Borde exterior blanco
+    paint.color = android.graphics.Color.WHITE
+    canvas.drawCircle(centerX, pinCenterY, pinRadius, paint)
+
+    // Círculo interior con el color del contenedor
+    paint.color = colorInt
+    canvas.drawCircle(centerX, pinCenterY, pinRadius - (2.5f * density), paint)
+
+    // 3. Punta inferior del pin
+    val tipStartY = pinCenterY + (pinRadius * 0.65f)
+    val tipBottomY = totalHeight - (2f * density)
+    val tipHalfWidth = 5f * density
+
+    // Punta blanca exterior
+    val tipPathWhite = Path().apply {
+        moveTo(centerX - tipHalfWidth - (1f * density), tipStartY)
+        lineTo(centerX + tipHalfWidth + (1f * density), tipStartY)
+        lineTo(centerX, tipBottomY + (1f * density))
+        close()
+    }
+    paint.color = android.graphics.Color.WHITE
+    canvas.drawPath(tipPathWhite, paint)
+
+    // Punta interior con color del contenedor
+    val tipPathColor = Path().apply {
+        moveTo(centerX - tipHalfWidth, tipStartY)
+        lineTo(centerX + tipHalfWidth, tipStartY)
+        lineTo(centerX, tipBottomY)
+        close()
+    }
+    paint.color = colorInt
+    canvas.drawPath(tipPathColor, paint)
+
+    // 4. Emoji / logo centrado en el círculo
+    val emojiPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
+        textSize = 14f * density
+        textAlign = Paint.Align.CENTER
+    }
+    val emojiFontMetrics = emojiPaint.fontMetrics
+    val emojiY = pinCenterY - ((emojiFontMetrics.descent + emojiFontMetrics.ascent) / 2f)
+    canvas.drawText(emoji, centerX, emojiY, emojiPaint)
+
+    return BitmapDrawable(context.resources, bitmap)
 }
